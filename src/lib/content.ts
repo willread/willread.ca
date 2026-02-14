@@ -5,20 +5,18 @@ export interface FileEntry {
   name: string;
   type: "file" | "dir";
   size: number;
-  date: string; // MM-DD-YYYY
-  time: string; // HH:MMa/p
-  extension?: string;
+  date: string;
+  time: string;
 }
 
 export interface DirListing {
-  path: string;
-  label: string;
+  slug: string;
   entries: FileEntry[];
 }
 
 export interface FileContent {
   name: string;
-  body: string; // markdown content
+  body: string;
 }
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
@@ -37,8 +35,9 @@ function formatDate(d: Date): { date: string; time: string } {
   };
 }
 
-export function getDirListing(dirPath: string = ""): DirListing | null {
-  const fullPath = path.join(CONTENT_DIR, dirPath);
+/** List a content directory. Returns null if path doesn't exist or isn't a directory. */
+export function getDirListing(slugPath: string = ""): DirListing | null {
+  const fullPath = path.join(CONTENT_DIR, slugPath);
   if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isDirectory()) {
     return null;
   }
@@ -52,75 +51,63 @@ export function getDirListing(dirPath: string = ""): DirListing | null {
     const { date, time } = formatDate(stat.mtime);
 
     if (stat.isDirectory()) {
-      // Count items in directory
-      const subItems = fs.readdirSync(itemPath);
       entries.push({
         name: item,
         type: "dir",
-        size: subItems.length,
+        size: fs.readdirSync(itemPath).length,
         date,
         time,
       });
     } else if (item.endsWith(".md")) {
-      const displayName = item.replace(/\.md$/, ".TXT");
-      const content = fs.readFileSync(itemPath, "utf-8");
       entries.push({
-        name: displayName,
+        name: item.replace(/\.md$/, ".TXT"),
         type: "file",
-        size: content.length,
+        size: fs.readFileSync(itemPath, "utf-8").length,
         date,
         time,
-        extension: "TXT",
       });
     }
   }
 
-  // Dirs first, then files
+  // Directories first, then files, alphabetical within each group
   entries.sort((a, b) => {
     if (a.type !== b.type) return a.type === "dir" ? -1 : 1;
     return a.name.localeCompare(b.name);
   });
 
-  const dosPath = dirPath ? `C:\\WILL\\${dirPath.toUpperCase().replace(/\//g, "\\")}` : "C:\\WILL";
+  return { slug: slugPath, entries };
+}
+
+/** Read a content file by slug path. Returns null if not found. */
+export function getFileContent(slugPath: string): FileContent | null {
+  const mdPath = path.join(CONTENT_DIR, slugPath + ".md");
+  if (!fs.existsSync(mdPath)) return null;
 
   return {
-    path: dosPath,
-    label: dirPath || "root",
-    entries,
+    name: path.basename(slugPath).toUpperCase() + ".TXT",
+    body: fs.readFileSync(mdPath, "utf-8"),
   };
 }
 
-export function getFileContent(filePath: string): FileContent | null {
-  // filePath comes in as e.g. "readme" or "posts/my-post"
-  const mdPath = path.join(CONTENT_DIR, filePath + ".md");
-  if (!fs.existsSync(mdPath)) return null;
-
-  const body = fs.readFileSync(mdPath, "utf-8");
-  const name = path.basename(filePath).toUpperCase() + ".TXT";
-
-  return { name, body };
-}
-
+/** Walk all content paths for static generation. */
 export function getAllPaths(): string[] {
   const paths: string[] = [""];
+  if (!fs.existsSync(CONTENT_DIR)) return paths;
 
-  function walk(dir: string, prefix: string) {
-    const items = fs.readdirSync(path.join(CONTENT_DIR, dir));
-    for (const item of items) {
-      const full = path.join(CONTENT_DIR, dir, item);
+  function walk(dir: string) {
+    for (const item of fs.readdirSync(path.join(CONTENT_DIR, dir))) {
       const rel = dir ? `${dir}/${item}` : item;
+      const full = path.join(CONTENT_DIR, rel);
+
       if (fs.statSync(full).isDirectory()) {
         paths.push(rel);
-        walk(rel, prefix);
+        walk(rel);
       } else if (item.endsWith(".md")) {
         paths.push(rel.replace(/\.md$/, ""));
       }
     }
   }
 
-  if (fs.existsSync(CONTENT_DIR)) {
-    walk("", "");
-  }
-
+  walk("");
   return paths;
 }

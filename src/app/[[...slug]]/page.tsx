@@ -1,24 +1,28 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { getDirListing, getFileContent, getAllPaths } from "@/lib/content";
+import { toDosPath, toHref, parentSlug } from "@/lib/dos";
 import DosScreen from "@/components/DosScreen";
+import DosPrompt from "@/components/DosPrompt";
 import DirListing from "@/components/DirListing";
 import FileView from "@/components/FileView";
-import Link from "next/link";
 
 interface Props {
   params: Promise<{ slug?: string[] }>;
 }
 
+function slugFromParams(slug?: string[]): string {
+  return slug?.join("/") || "";
+}
+
 export async function generateStaticParams() {
-  const paths = getAllPaths();
-  return paths.map((p) => ({
+  return getAllPaths().map((p) => ({
     slug: p === "" ? undefined : p.split("/"),
   }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const slugPath = slug?.join("/") || "";
+  const slugPath = slugFromParams((await params).slug);
 
   if (!slugPath) {
     return {
@@ -38,8 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const dir = getDirListing(slugPath);
   if (dir) {
     return {
-      title: `DIR ${dir.path} — Will`,
-      description: `Directory listing of ${dir.path}`,
+      title: `DIR ${toDosPath(slugPath)} — Will`,
+      description: `Directory listing of ${toDosPath(slugPath)}`,
     };
   }
 
@@ -47,66 +51,52 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Page({ params }: Props) {
-  const { slug } = await params;
-  const slugPath = slug?.join("/") || "";
+  const slugPath = slugFromParams((await params).slug);
 
-  // Try as file first
+  // File view
   const file = getFileContent(slugPath);
   if (file) {
-    const dirParts = slugPath.split("/");
-    dirParts.pop();
-    const parentDir = dirParts.join("/");
-    const dosPath = parentDir
-      ? `C:\\WILL\\${parentDir.toUpperCase().replace(/\//g, "\\")}`
-      : "C:\\WILL";
-
+    const parent = parentSlug(slugPath) ?? "";
     return (
-      <DosScreen>
-        <FileView dosPath={dosPath} fileName={file.name} content={file.body} />
+      <DosScreen slugPath={parent}>
+        <FileView slugPath={parent} fileName={file.name} content={file.body} />
         <div className="mt-4">
           <Link
-            href={parentDir ? `/${parentDir}` : "/"}
+            href={toHref(parent)}
             className="text-[var(--dos-prompt)] hover:text-[var(--dos-highlight)]"
           >
-            {dosPath}&gt;CD ..
+            {toDosPath(parent)}&gt;CD ..
           </Link>
         </div>
       </DosScreen>
     );
   }
 
-  // Try as directory
+  // Directory listing
   const dir = getDirListing(slugPath);
   if (dir) {
-    const parentParts = slugPath.split("/").filter(Boolean);
-    parentParts.pop();
-    const parentPath = slugPath ? parentParts.join("/") : undefined;
-
     return (
-      <DosScreen>
+      <DosScreen slugPath={slugPath}>
         <DirListing
-          dosPath={dir.path}
+          slugPath={slugPath}
           entries={dir.entries}
-          parentPath={parentPath}
+          parentSlug={parentSlug(slugPath)}
         />
       </DosScreen>
     );
   }
 
-  // 404-style
+  // 404
   return (
     <DosScreen>
-      <div>
-        <div className="text-[var(--dos-prompt)] mb-2">
-          C:\WILL&gt;<span className="text-[var(--dos-highlight)]">
-            {slugPath.toUpperCase()}
-          </span>
-        </div>
-        <div className="mb-2">Bad command or file name</div>
-        <Link href="/" className="text-[var(--dos-prompt)] hover:text-[var(--dos-highlight)]">
-          C:\WILL&gt;CD \
-        </Link>
-      </div>
+      <DosPrompt slugPath="" command={slugPath.toUpperCase()} />
+      <div className="mt-2 mb-2">Bad command or file name</div>
+      <Link
+        href="/"
+        className="text-[var(--dos-prompt)] hover:text-[var(--dos-highlight)]"
+      >
+        C:\WILL&gt;CD \
+      </Link>
     </DosScreen>
   );
 }
