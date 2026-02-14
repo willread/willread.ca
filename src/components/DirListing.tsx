@@ -12,8 +12,8 @@ interface Props {
   parentSlug?: string;
 }
 
-const linkClass = "block hover:bg-[#aaa] hover:text-black transition-none";
-const linkStyle = { color: "#ffffff" };
+const linkClass = "block hover:bg-[var(--dos-link)] hover:text-black active:bg-[var(--dos-highlight)] active:text-black transition-none";
+const linkStyle = { color: "var(--dos-link)" };
 
 export default function DirListing({ slugPath, entries, parentSlug }: Props) {
   const { isStatic } = useCommandQueue();

@@ -12,8 +12,7 @@
   --dos-bg: #000000;
   --dos-fg: #aaaaaa;
   --dos-highlight: #ffffff;
-  --dos-dir: #ffffff;
-  --dos-exe: #ffffff;
+  --dos-link: #55ff55;
   --dos-prompt: #aaaaaa;
 }
 

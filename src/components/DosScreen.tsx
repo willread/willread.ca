@@ -38,7 +38,7 @@ export default function DosScreen({ children }: { children: ReactNode }) {
     <div ref={containerRef} className="min-h-screen p-3 sm:p-4 md:p-8 max-w-4xl mx-auto">
       {/* Previous output */}
       {history.map((node, i) => (
-        <div key={i} className="mb-4 opacity-60">
+        <div key={i} className="mb-4 opacity-30">
           <StaticCommandQueue>{node}</StaticCommandQueue>
         </div>
       ))}
