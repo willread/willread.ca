@@ -25,10 +25,11 @@ export default function TypedCommand({
   const myIndex = useMemo(() => register(id), [id, register]);
   const isMyTurn = activeIndex >= myIndex;
 
-  // Start showing full content (matches SSR), animate after hydration
   const [hydrated, setHydrated] = useState(false);
-  const [phase, setPhase] = useState<"waiting" | "typing" | "fading" | "done">("done");
-  const [typedChars, setTypedChars] = useState(command.length);
+  const [started, setStarted] = useState(false);
+  const [typedChars, setTypedChars] = useState(command.length); // match SSR
+  const [showContent, setShowContent] = useState(true); // match SSR
+  const [animDone, setAnimDone] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -42,21 +43,13 @@ export default function TypedCommand({
     setHydrated(true);
   }, []);
 
-  // After hydration, set up waiting state for commands that aren't first
+  // Start typing when hydrated + it's our turn + haven't started yet
   useEffect(() => {
-    if (!hydrated || isStatic) return;
-    if (!isMyTurn) {
-      setPhase("waiting");
-      setTypedChars(0);
-    }
-  }, [hydrated, isStatic, isMyTurn]);
-
-  // Start typing when it's our turn
-  useEffect(() => {
-    if (isStatic || !hydrated || !isMyTurn || phase === "typing" || phase === "fading" || phase === "done") return;
-
-    setPhase("typing");
+    if (isStatic || !hydrated || !isMyTurn || started) return;
+    setStarted(true);
     setTypedChars(0);
+    setShowContent(false);
+    setAnimDone(false);
 
     let i = 0;
     intervalRef.current = setInterval(() => {
@@ -64,21 +57,21 @@ export default function TypedCommand({
       setTypedChars(i);
       if (i >= command.length) {
         clearInterval(intervalRef.current!);
-        setPhase("fading");
+        setShowContent(true);
         timeoutRef.current = setTimeout(() => {
-          setPhase("done");
+          setAnimDone(true);
           complete(myIndex);
         }, fadeDuration);
       }
     }, speed);
 
     return cleanup;
-  }, [isMyTurn, hydrated, isStatic, phase, command.length, speed, fadeDuration, myIndex, complete, cleanup]);
+  }, [isMyTurn, hydrated, isStatic, started, command.length, speed, fadeDuration, myIndex, complete, cleanup]);
 
   const prompt = `${toDosPath(slugPath)}>`;
 
-  // Static or done: render instantly
-  if (isStatic || phase === "done") {
+  // Static mode (history): instant render
+  if (isStatic) {
     return (
       <div>
         <div className="text-[var(--dos-prompt)]">{prompt}{command}</div>
@@ -87,8 +80,18 @@ export default function TypedCommand({
     );
   }
 
-  // Waiting for turn: hidden but in DOM for SEO
-  if (phase === "waiting") {
+  // Before hydration or animation done: show full content (matches SSR)
+  if (!hydrated || animDone) {
+    return (
+      <div>
+        <div className="text-[var(--dos-prompt)]">{prompt}{command}</div>
+        <div>{children}</div>
+      </div>
+    );
+  }
+
+  // Hydrated but not our turn yet: hide everything (SEO content already served)
+  if (!isMyTurn && !started) {
     return (
       <div style={{ position: "absolute", opacity: 0, height: 0, overflow: "hidden" }}>
         <div>{prompt}{command}</div>
@@ -97,19 +100,21 @@ export default function TypedCommand({
     );
   }
 
-  // Typing or fading
+  // Animating: typing + fade
+  const isTyping = typedChars < command.length;
+
   return (
     <div>
       <div className="text-[var(--dos-prompt)]">
         {prompt}
         <span>{command.slice(0, typedChars)}</span>
-        {phase === "typing" && typedChars < command.length && (
+        {isTyping && (
           <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
         )}
       </div>
       <div
         style={{
-          opacity: phase === "fading" ? 1 : 0,
+          opacity: showContent ? 1 : 0,
           transition: `opacity ${fadeDuration}ms ease-in`,
         }}
       >
