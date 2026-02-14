@@ -22,18 +22,24 @@ interface TerminalState {
 
 const TerminalContext = createContext<TerminalState>({ history: [] });
 
+const RegisterContext = createContext<(block: TerminalBlock) => void>(() => {});
+
 export function TerminalProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<TerminalBlock[]>([]);
   const pendingRef = useRef<TerminalBlock | null>(null);
+  const prevPathnameRef = useRef<string | null>(null);
   const pathname = usePathname();
 
-  // When the pathname changes, commit whatever was pending (the previous page)
   useEffect(() => {
-    if (pendingRef.current) {
-      const block = pendingRef.current;
-      setHistory((prev) => [...prev, block]);
+    // Only commit pending block when pathname actually changes (not on initial mount)
+    if (prevPathnameRef.current !== null && prevPathnameRef.current !== pathname) {
+      if (pendingRef.current) {
+        const block = pendingRef.current;
+        setHistory((prev) => [...prev, block]);
+        pendingRef.current = null;
+      }
     }
-    pendingRef.current = null;
+    prevPathnameRef.current = pathname;
   }, [pathname]);
 
   const registerCurrent = useCallback((block: TerminalBlock) => {
@@ -49,13 +55,10 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
   );
 }
 
-const RegisterContext = createContext<(block: TerminalBlock) => void>(() => {});
-
 export function useTerminal() {
   return useContext(TerminalContext);
 }
 
-/** Register the current page's output so it becomes history on the NEXT navigation */
 export function useRegisterBlock(id: string, content: ReactNode) {
   const register = useContext(RegisterContext);
 
