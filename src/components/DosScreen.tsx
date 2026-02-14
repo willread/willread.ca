@@ -1,14 +1,26 @@
 "use client";
 
-import { ReactNode, useRef, useEffect } from "react";
+import { ReactNode, useRef, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useTerminal } from "@/lib/terminal";
 import { StaticCommandQueue } from "@/lib/command-queue";
 import DosCursor from "./DosCursor";
 
+let screenNavCounter = 0;
+
 export default function DosScreen({ children }: { children: ReactNode }) {
   const { history } = useTerminal();
+  const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const prevPathRef = useRef(pathname);
+  const navKeyRef = useRef(screenNavCounter);
+
+  // Detect navigation synchronously
+  if (prevPathRef.current !== pathname) {
+    prevPathRef.current = pathname;
+    navKeyRef.current = ++screenNavCounter;
+  }
 
   // Auto-scroll whenever DOM content changes (typing, revealing, navigation)
   useEffect(() => {
@@ -28,9 +40,7 @@ export default function DosScreen({ children }: { children: ReactNode }) {
       attributeFilter: ["style"],
     });
 
-    // Initial scroll
     scroll();
-
     return () => observer.disconnect();
   }, []);
 
@@ -43,8 +53,10 @@ export default function DosScreen({ children }: { children: ReactNode }) {
         </div>
       ))}
 
-      {/* Current page */}
-      {children}
+      {/* Current page — key forces full remount on navigation */}
+      <div key={navKeyRef.current}>
+        {children}
+      </div>
 
       <DosCursor slugPath="" />
       <div ref={bottomRef} className="h-16" />
