@@ -24,7 +24,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
       <DosPrompt slugPath={slugPath} command="DIR" />
 
       <div className="mt-1"> Volume in drive C is WILL</div>
-      <div> Volume Serial Number is 1337-DEAD</div>
+      <div> Volume Serial Number is H0M3-P4G3</div>
       <div className="mt-1 mb-2"> Directory of {dosPath}</div>
 
       <DirRow name="." type="dir" />
