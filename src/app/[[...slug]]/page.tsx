@@ -52,24 +52,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const slugPath = slugFromParams((await params).slug);
 
-  // File view — show file content then parent DIR for navigation
+  // File view
   const file = getFileContent(slugPath);
   if (file) {
     const parent = parentSlug(slugPath) ?? "";
-    const parentDir = getDirListing(parent);
     return (
-      <>
-        <FileView slugPath={parent} fileName={file.name} content={file.body} />
-        {parentDir && (
-          <div className="mt-4">
-            <DirListing
-              slugPath={parent}
-              entries={parentDir.entries}
-              parentSlug={parentSlug(parent)}
-            />
-          </div>
-        )}
-      </>
+      <FileView slugPath={parent} fileName={file.name} content={file.body} />
     );
   }
 

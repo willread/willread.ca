@@ -38,7 +38,7 @@ export default function DosScreen({ children }: { children: ReactNode }) {
       {history.map((html, i) => (
         <div
           key={i}
-          className="mb-4 opacity-60 pointer-events-none"
+          className="mb-4 opacity-60"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       ))}
