@@ -40,16 +40,8 @@ export default function NotFoundClient() {
         className="group mt-4 flex items-center cursor-pointer hover:bg-[rgba(85,255,85,0.2)] hover:text-black active:bg-[rgba(85,255,85,0.2)] active:text-[var(--dos-link)] transition-none"
       >
         <span className="text-[var(--dos-prompt)]">{prompt}</span>
-        <span className="cursor-blink text-[var(--dos-highlight)] group-hover:hidden">▓</span>
-        <span
-          className="group-hover:hidden"
-          style={{ opacity: 0.5, color: "var(--dos-link)", marginLeft: "-1ch" }}
-        >{command}</span>
-        <span
-          className="hidden group-hover:inline"
-          style={{ color: "var(--dos-link)" }}
-        >{command}</span>
-        <span className="cursor-blink text-[var(--dos-highlight)] hidden group-hover:inline">▓</span>
+        <span style={{ color: "var(--dos-link)" }} className="group-hover:opacity-100 opacity-50">{command}</span>
+        <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
       </Link>
     </>
   );

@@ -53,6 +53,9 @@ a {
 
 .cursor-blink {
   animation: blink 1s step-end infinite;
+  display: inline-block;
+  width: 1ch;
+  text-align: center;
 }
 
 /* Scrollbar styling */

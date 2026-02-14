@@ -45,16 +45,8 @@ export default function ClickableDir({ slugPath, entries, parentSlug }: Props) {
         onClick={() => setClicked(true)}
       >
         <span className="text-[var(--dos-prompt)]">{prompt}</span>
-        <span className="cursor-blink text-[var(--dos-highlight)] group-hover:hidden">▓</span>
-        <span
-          className="group-hover:hidden"
-          style={{ opacity: 0.5, color: "var(--dos-link)", marginLeft: "-1ch" }}
-        >DIR</span>
-        <span
-          className="hidden group-hover:inline"
-          style={{ color: "var(--dos-link)" }}
-        >DIR</span>
-        <span className="cursor-blink text-[var(--dos-highlight)] hidden group-hover:inline">▓</span>
+        <span style={{ color: "var(--dos-link)" }} className="group-hover:opacity-100 opacity-50">DIR</span>
+        <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
       </div>
     );
   }
