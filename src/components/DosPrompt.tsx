@@ -10,9 +10,7 @@ export default function DosPrompt({ slugPath, command }: Props) {
   return (
     <div className="text-[var(--dos-prompt)]">
       {toDosPath(slugPath)}&gt;
-      {command && (
-        <span className="text-[var(--dos-highlight)]">{command}</span>
-      )}
+      {command && <span>{command}</span>}
     </div>
   );
 }

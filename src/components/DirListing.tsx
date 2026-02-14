@@ -31,7 +31,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
       {parentSlug !== undefined && (
         <Link
           href={toHref(parentSlug)}
-          className="block hover:bg-[var(--dos-fg)] hover:text-[var(--dos-bg)] transition-none"
+          className="block text-[var(--dos-highlight)] hover:bg-[var(--dos-fg)] hover:text-[var(--dos-bg)] transition-none"
         >
           <DirRow name=".." type="dir" />
         </Link>
@@ -47,7 +47,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
           <Link
             key={entry.name}
             href={href}
-            className="block hover:bg-[var(--dos-fg)] hover:text-[var(--dos-bg)] transition-none"
+            className="block text-[var(--dos-highlight)] hover:bg-[var(--dos-fg)] hover:text-[var(--dos-bg)] transition-none"
           >
             <DirRow
               name={entry.name}
