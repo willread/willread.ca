@@ -76,12 +76,20 @@ export default async function Page({ params }: Props) {
   // Directory listing
   const dir = getDirListing(slugPath);
   if (dir) {
+    const parent = parentSlug(slugPath);
+    const dirName = slugPath.split("/").pop()?.toUpperCase();
     return (
-      <DirListing
-        slugPath={slugPath}
-        entries={dir.entries}
-        parentSlug={parentSlug(slugPath)}
-      />
+      <>
+        {/* Show CD command if entering a subdirectory */}
+        {dirName && (
+          <DosPrompt slugPath={parent ?? ""} command={`CD ${dirName}`} />
+        )}
+        <DirListing
+          slugPath={slugPath}
+          entries={dir.entries}
+          parentSlug={parent}
+        />
+      </>
     );
   }
 

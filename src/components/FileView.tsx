@@ -1,7 +1,6 @@
 "use client";
 
 import Markdown from "react-markdown";
-import { useRegisterBlock } from "@/lib/terminal";
 import DosPrompt from "./DosPrompt";
 
 interface Props {
@@ -51,7 +50,7 @@ const markdownComponents = {
   ),
 };
 
-function FileContent({ slugPath, fileName, content }: Props) {
+export default function FileView({ slugPath, fileName, content }: Props) {
   return (
     <div>
       <DosPrompt slugPath={slugPath} command={`TYPE ${fileName}`} />
@@ -60,11 +59,4 @@ function FileContent({ slugPath, fileName, content }: Props) {
       </div>
     </div>
   );
-}
-
-export default function FileView(props: Props) {
-  const historyContent = <FileContent {...props} />;
-  useRegisterBlock(`file-${props.slugPath}/${props.fileName}`, historyContent);
-
-  return <FileContent {...props} />;
 }

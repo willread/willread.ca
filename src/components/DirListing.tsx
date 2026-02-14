@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FileEntry } from "@/lib/content";
 import { toDosPath, toHref, entryToSlug } from "@/lib/dos";
-import { useRegisterBlock } from "@/lib/terminal";
 import DosPrompt from "./DosPrompt";
 
 interface Props {
@@ -20,56 +19,6 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
     .filter((e) => e.type === "file")
     .reduce((sum, e) => sum + e.size, 0);
 
-  const currentOutput = (
-    <DirOutput
-      slugPath={slugPath}
-      dosPath={dosPath}
-      entries={entries}
-      parentSlug={parentSlug}
-      fileCount={fileCount}
-      dirCount={dirCount}
-      totalBytes={totalBytes}
-      interactive={false}
-    />
-  );
-
-  useRegisterBlock(`dir-${slugPath}`, currentOutput);
-
-  return (
-    <DirOutput
-      slugPath={slugPath}
-      dosPath={dosPath}
-      entries={entries}
-      parentSlug={parentSlug}
-      fileCount={fileCount}
-      dirCount={dirCount}
-      totalBytes={totalBytes}
-      interactive
-    />
-  );
-}
-
-interface DirOutputProps {
-  slugPath: string;
-  dosPath: string;
-  entries: FileEntry[];
-  parentSlug?: string;
-  fileCount: number;
-  dirCount: number;
-  totalBytes: number;
-  interactive: boolean;
-}
-
-function DirOutput({
-  slugPath,
-  dosPath,
-  entries,
-  parentSlug,
-  fileCount,
-  dirCount,
-  totalBytes,
-  interactive,
-}: DirOutputProps) {
   return (
     <div>
       <DosPrompt slugPath={slugPath} command="DIR" />
@@ -80,9 +29,12 @@ function DirOutput({
 
       <DirRow name="." type="dir" />
       {parentSlug !== undefined && (
-        <MaybeLink href={toHref(parentSlug)} interactive={interactive}>
+        <Link
+          href={toHref(parentSlug)}
+          className="block hover:bg-[var(--dos-fg)] hover:text-[var(--dos-bg)] transition-none"
+        >
           <DirRow name=".." type="dir" />
-        </MaybeLink>
+        </Link>
       )}
 
       {entries.map((entry) => {
@@ -92,7 +44,11 @@ function DirOutput({
         );
 
         return (
-          <MaybeLink key={entry.name} href={href} interactive={interactive}>
+          <Link
+            key={entry.name}
+            href={href}
+            className="block hover:bg-[var(--dos-fg)] hover:text-[var(--dos-bg)] transition-none"
+          >
             <DirRow
               name={entry.name}
               type={entry.type}
@@ -100,7 +56,7 @@ function DirOutput({
               date={entry.date}
               time={entry.time}
             />
-          </MaybeLink>
+          </Link>
         );
       })}
 
@@ -117,26 +73,6 @@ function DirOutput({
   );
 }
 
-function MaybeLink({
-  href,
-  interactive,
-  children,
-}: {
-  href: string;
-  interactive: boolean;
-  children: React.ReactNode;
-}) {
-  if (!interactive) return <>{children}</>;
-  return (
-    <Link
-      href={href}
-      className="block hover:bg-[var(--dos-fg)] hover:text-[var(--dos-bg)] transition-none"
-    >
-      {children}
-    </Link>
-  );
-}
-
 function DirRow({
   name,
   type,
@@ -150,7 +86,6 @@ function DirRow({
   date?: string;
   time?: string;
 }) {
-  // 8.3 name formatting
   let dosName: string;
   if (type === "dir") {
     dosName = name.toUpperCase();
