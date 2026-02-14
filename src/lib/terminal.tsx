@@ -6,29 +6,39 @@ import {
   useState,
   useCallback,
   ReactNode,
+  useRef,
 } from "react";
 
-interface TerminalState {
-  history: string[];
-  pushSnapshot: (html: string) => void;
+interface CurrentBlock {
+  id: string;
+  content: ReactNode;
 }
 
-const TerminalContext = createContext<TerminalState>({
+interface TerminalContextValue {
+  history: ReactNode[];
+  register: (id: string, content: ReactNode) => void;
+}
+
+const TerminalContext = createContext<TerminalContextValue>({
   history: [],
-  pushSnapshot: () => {},
+  register: () => {},
 });
 
 export function TerminalProvider({ children }: { children: ReactNode }) {
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<ReactNode[]>([]);
+  const currentRef = useRef<CurrentBlock | null>(null);
 
-  const pushSnapshot = useCallback((html: string) => {
-    if (html.trim()) {
-      setHistory((prev) => [...prev, html]);
+  const register = useCallback((id: string, content: ReactNode) => {
+    // If there's existing content with a DIFFERENT id, push it to history
+    if (currentRef.current && currentRef.current.id !== id) {
+      const prev = currentRef.current.content;
+      setHistory((h) => [...h, prev]);
     }
+    currentRef.current = { id, content };
   }, []);
 
   return (
-    <TerminalContext.Provider value={{ history, pushSnapshot }}>
+    <TerminalContext.Provider value={{ history, register }}>
       {children}
     </TerminalContext.Provider>
   );

@@ -5,6 +5,7 @@ import { toDosPath, toHref, parentSlug } from "@/lib/dos";
 import DosPrompt from "@/components/DosPrompt";
 import DirListing from "@/components/DirListing";
 import FileView from "@/components/FileView";
+import TerminalBlock from "@/components/TerminalBlock";
 
 interface Props {
   params: Promise<{ slug?: string[] }>;
@@ -52,12 +53,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const slugPath = slugFromParams((await params).slug);
 
-  // File view
+  // File view — TYPE then parent DIR for navigation
   const file = getFileContent(slugPath);
   if (file) {
     const parent = parentSlug(slugPath) ?? "";
+    const parentDir = getDirListing(parent);
     return (
-      <FileView slugPath={parent} fileName={file.name} content={file.body} />
+      <TerminalBlock id={`file:${slugPath}`}>
+        <FileView slugPath={parent} fileName={file.name} content={file.body} />
+        {parentDir && (
+          <div className="mt-4">
+            <DirListing
+              slugPath={parent}
+              entries={parentDir.entries}
+              parentSlug={parentSlug(parent)}
+            />
+          </div>
+        )}
+      </TerminalBlock>
     );
   }
 
@@ -67,8 +80,7 @@ export default async function Page({ params }: Props) {
     const parent = parentSlug(slugPath);
     const dirName = slugPath.split("/").pop()?.toUpperCase();
     return (
-      <>
-        {/* Show CD command if entering a subdirectory */}
+      <TerminalBlock id={`dir:${slugPath}`}>
         {dirName && (
           <DosPrompt slugPath={parent ?? ""} command={`CD ${dirName}`} />
         )}
@@ -77,13 +89,13 @@ export default async function Page({ params }: Props) {
           entries={dir.entries}
           parentSlug={parent}
         />
-      </>
+      </TerminalBlock>
     );
   }
 
   // 404
   return (
-    <div>
+    <TerminalBlock id={`404:${slugPath}`}>
       <DosPrompt slugPath="" command={slugPath.toUpperCase()} />
       <div className="mt-2 mb-2">Bad command or file name</div>
       <Link
@@ -92,6 +104,6 @@ export default async function Page({ params }: Props) {
       >
         C:\&gt;CD \
       </Link>
-    </div>
+    </TerminalBlock>
   );
 }
