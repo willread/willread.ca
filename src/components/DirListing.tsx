@@ -12,7 +12,7 @@ interface Props {
   parentSlug?: string;
 }
 
-const linkClass = "block hover:bg-[var(--dos-link)] hover:text-black active:bg-[rgba(85,255,85,0.1)] active:text-[var(--dos-link)] transition-none";
+const linkClass = "block hover:bg-[var(--dos-link)] hover:text-black active:bg-[rgba(85,255,85,0.2)] active:text-[var(--dos-link)] transition-none";
 const linkStyle = { color: "var(--dos-link)" };
 
 export default function DirListing({ slugPath, entries, parentSlug }: Props) {
