@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 import { FileEntry } from "@/lib/content";
 import { toDosPath } from "@/lib/dos";
 import { pushAnimating, popAnimating } from "@/lib/animation-state";

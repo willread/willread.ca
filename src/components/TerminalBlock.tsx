@@ -22,7 +22,7 @@ export default function TerminalBlock({ id, children }: Props) {
       navIdRef.current = `${id}:${++globalNavCounter}`;
     }
     register(navIdRef.current, children);
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Remove the SSR hide attribute once JS hydrates
   useEffect(() => {
