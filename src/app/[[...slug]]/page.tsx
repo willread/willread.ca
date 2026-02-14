@@ -24,30 +24,23 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const slugPath = slugFromParams((await params).slug);
 
+  const title = slugPath ? `will://${slugPath}` : "will://";
+
   if (!slugPath) {
-    return {
-      title: "C:\\>",
-      description: "Will's personal homepage — projects, posts, and more.",
-    };
+    return { title, description: "Will's personal homepage — projects, posts, and more." };
   }
 
   const file = getFileContent(slugPath);
   if (file) {
-    return {
-      title: `TYPE ${file.name} — Will`,
-      description: file.body.slice(0, 160).replace(/[#*_\n]/g, ""),
-    };
+    return { title, description: file.body.slice(0, 160).replace(/[#*_\n]/g, "") };
   }
 
   const dir = getDirListing(slugPath);
   if (dir) {
-    return {
-      title: `DIR ${toDosPath(slugPath)} — Will`,
-      description: `Directory listing of ${toDosPath(slugPath)}`,
-    };
+    return { title, description: `Directory listing of ${toDosPath(slugPath)}` };
   }
 
-  return { title: "C:\\>" };
+  return { title };
 }
 
 export default async function Page({ params }: Props) {

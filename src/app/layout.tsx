@@ -4,7 +4,7 @@ import DosScreen from "@/components/DosScreen";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "C:\\>",
+  title: "will://",
   description: "Will's personal homepage",
 };
 
