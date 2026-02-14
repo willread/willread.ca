@@ -68,21 +68,16 @@ export default async function Page({ params }: Props) {
     const dirName = slugPath.split("/").pop()?.toUpperCase();
     return (
       <TerminalBlock id={`dir:${slugPath}`}>
-        {dirName ? (
-          <TypedCommand slugPath={parent ?? ""} command={`CD ${dirName}`}>
-            <DirListing
-              slugPath={slugPath}
-              entries={dir.entries}
-              parentSlug={parent}
-            />
+        {dirName && (
+          <TypedCommand id={`cd-${slugPath}`} slugPath={parent ?? ""} command={`CD ${dirName}`}>
+            <div />
           </TypedCommand>
-        ) : (
-          <DirListing
-            slugPath={slugPath}
-            entries={dir.entries}
-            parentSlug={parent}
-          />
         )}
+        <DirListing
+          slugPath={slugPath}
+          entries={dir.entries}
+          parentSlug={parent}
+        />
       </TerminalBlock>
     );
   }

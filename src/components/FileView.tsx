@@ -52,7 +52,7 @@ const markdownComponents = {
 
 export default function FileView({ slugPath, fileName, content }: Props) {
   return (
-    <TypedCommand slugPath={slugPath} command={`TYPE ${fileName}`}>
+    <TypedCommand id={`type-${fileName}`} slugPath={slugPath} command={`TYPE ${fileName}`}>
       <div className="mt-2 leading-relaxed break-words">
         <Markdown components={markdownComponents}>{content}</Markdown>
       </div>
