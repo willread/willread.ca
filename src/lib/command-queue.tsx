@@ -9,7 +9,7 @@ import {
   useRef,
   ReactNode,
 } from "react";
-import { setAnimating } from "@/lib/animation-state";
+import { pushAnimating, popAnimating } from "@/lib/animation-state";
 
 interface QueueContext {
   register: (id: string) => number;
@@ -49,10 +49,10 @@ export function CommandQueue({ children }: { children: ReactNode }) {
 
   // Signal global animation state
   useEffect(() => {
-    if (totalRegistered > 0) {
-      setAnimating(activeIndex < totalRegistered);
+    if (totalRegistered > 0 && activeIndex < totalRegistered) {
+      pushAnimating();
+      return () => popAnimating();
     }
-    return () => setAnimating(false);
   }, [activeIndex, totalRegistered]);
 
   return (

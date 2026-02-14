@@ -3,7 +3,7 @@
 import { useState, useEffect, useLayoutEffect } from "react";
 import { FileEntry } from "@/lib/content";
 import { toDosPath } from "@/lib/dos";
-import { setAnimating } from "@/lib/animation-state";
+import { pushAnimating, popAnimating } from "@/lib/animation-state";
 import { CommandQueue, useCommandQueue } from "@/lib/command-queue";
 import DirListing from "./DirListing";
 
@@ -19,11 +19,10 @@ export default function ClickableDir({ slugPath, entries, parentSlug }: Props) {
   const prompt = `${toDosPath(slugPath)}>`;
 
   // Hide the bottom DosCursor while we're showing our own clickable prompt
-  // useLayoutEffect to prevent flash of DosCursor between CommandQueue done and this taking over
   useLayoutEffect(() => {
     if (parentDone && !clicked) {
-      setAnimating(true);
-      return () => setAnimating(false);
+      pushAnimating();
+      return () => popAnimating();
     }
   }, [parentDone, clicked]);
 
