@@ -41,7 +41,7 @@ const markdownComponents = {
     <span className="text-[var(--dos-highlight)]">{children}</span>
   ),
   hr: () => (
-    <div className="my-2 text-[var(--dos-prompt)] overflow-hidden">{"─".repeat(60)}</div>
+    <hr className="my-2 border-t border-[var(--dos-prompt)]" />
   ),
   blockquote: ({ children }: any) => (
     <div className="ml-2 pl-2 border-l-2 border-[var(--dos-prompt)]">
