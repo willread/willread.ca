@@ -1,4 +1,7 @@
+"use client";
+
 import Markdown from "react-markdown";
+import { useRegisterBlock } from "@/lib/terminal";
 import DosPrompt from "./DosPrompt";
 
 interface Props {
@@ -7,8 +10,7 @@ interface Props {
   content: string;
 }
 
-/** Markdown component overrides for DOS-styled rendering */
-const components = {
+const markdownComponents = {
   h1: ({ children }: any) => (
     <div className="text-[var(--dos-highlight)] mb-2 font-bold">{children}</div>
   ),
@@ -49,13 +51,20 @@ const components = {
   ),
 };
 
-export default function FileView({ slugPath, fileName, content }: Props) {
+function FileContent({ slugPath, fileName, content }: Props) {
   return (
     <div>
       <DosPrompt slugPath={slugPath} command={`TYPE ${fileName}`} />
-      <div className="mt-2 leading-relaxed">
-        <Markdown components={components}>{content}</Markdown>
+      <div className="mt-2 leading-relaxed break-words">
+        <Markdown components={markdownComponents}>{content}</Markdown>
       </div>
     </div>
   );
+}
+
+export default function FileView(props: Props) {
+  const historyContent = <FileContent {...props} />;
+  useRegisterBlock(`file-${props.slugPath}/${props.fileName}`, historyContent);
+
+  return <FileContent {...props} />;
 }
