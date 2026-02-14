@@ -23,6 +23,16 @@ export interface FileContent {
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 
+// Debug: log content directory at build time
+if (typeof process !== "undefined") {
+  try {
+    const items = fs.readdirSync(CONTENT_DIR);
+    console.log(`[content] CONTENT_DIR=${CONTENT_DIR} items=${JSON.stringify(items)}`);
+  } catch (e) {
+    console.log(`[content] CONTENT_DIR=${CONTENT_DIR} ERROR: ${e}`);
+  }
+}
+
 function formatDate(d: Date): { date: string; time: string } {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
