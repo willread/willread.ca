@@ -59,7 +59,7 @@ export default async function Page({ params, searchParams }: Props) {
     return (
       <TerminalBlock id={`file:${slugPath}`}>
         <SetCurrentDir slugPath={fileParent} />
-        <FileView slugPath="" fileName={file.name} content={file.body} />
+        <FileView slugPath={fileParent} fileName={file.name} content={file.body} />
         {parentDir && (
           <ClickableDir slugPath={fileParent} entries={parentDir.entries} parentSlug={grandparent} />
         )}
