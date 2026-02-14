@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FileEntry } from "@/lib/content";
-import { toDosPath, toHref, entryToSlug } from "@/lib/dos";
+import { toDosPath, toHref } from "@/lib/dos";
 import { useCommandQueue } from "@/lib/command-queue";
 import TypedCommand from "./TypedCommand";
 
@@ -26,9 +26,9 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
 
   return (
     <TypedCommand id={`dir-${slugPath}`} slugPath={slugPath} command="DIR">
-      <div className="mt-1"> Volume in drive C is WILL</div>
-      <div> Volume Serial Number is H0M3-P4G3</div>
-      <div className="mt-1 mb-2"> Directory of {dosPath}</div>
+      <pre className="mt-1 font-[inherit] text-[length:inherit] leading-[inherit]">{" Volume in drive C is WILL"}</pre>
+      <pre className="font-[inherit] text-[length:inherit] leading-[inherit]">{" Volume Serial Number is H0M3-P4G3"}</pre>
+      <pre className="font-[inherit] text-[length:inherit] leading-[inherit] mt-1 mb-2">{" Directory of "}{dosPath}</pre>
 
       <DirRow name="." type="dir" />
       {parentSlug !== undefined && (
@@ -44,7 +44,6 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
       {entries.map((entry) => {
         const row = (
           <DirRow
-            key={entry.name}
             name={entry.name}
             type={entry.type}
             size={entry.size}
@@ -74,9 +73,8 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
           );
         }
 
-        const entrySlugPart = entryToSlug(entry.name, entry.type);
         const href = toHref(
-          slugPath ? `${slugPath}/${entrySlugPart}` : entrySlugPart
+          slugPath ? `${slugPath}/${entry.slug}` : entry.slug
         );
 
         return (
@@ -86,19 +84,20 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
         );
       })}
 
-      <div className="mt-1">
-        {"     "}
-        {fileCount} File(s){"     "}
-        {totalBytes.toLocaleString()} bytes
-      </div>
-      <div>
-        {"     "}
-        {dirCount + 2} Dir(s){"  "}420,694,200 bytes free
-      </div>
+      <pre className="font-[inherit] text-[length:inherit] leading-[inherit] mt-1">
+        {`        ${String(fileCount).padStart(3)} File(s)  ${totalBytes.toLocaleString().padStart(14)} bytes`}
+      </pre>
+      <pre className="font-[inherit] text-[length:inherit] leading-[inherit]">
+        {`        ${String(dirCount + 2).padStart(3)} Dir(s)   420,694,200 bytes free`}
+      </pre>
     </TypedCommand>
   );
 }
 
+/**
+ * DOS DIR row with proper 8.3 column alignment.
+ * Format: FILENAME EXT   <DIR>           MM-DD-YYYY HH:MMa
+ */
 function DirRow({
   name,
   type,
@@ -112,32 +111,31 @@ function DirRow({
   date?: string;
   time?: string;
 }) {
-  let dosName: string;
+  let basePart: string;
+  let extPart: string;
+
   if (type === "dir") {
-    dosName = name.toUpperCase();
+    basePart = name.toUpperCase().padEnd(8);
+    extPart = "   ";
   } else {
     const dot = name.lastIndexOf(".");
     const base = dot >= 0 ? name.slice(0, dot) : name;
     const ext = dot >= 0 ? name.slice(dot + 1) : "";
-    dosName = `${base.toUpperCase()}.${ext.toUpperCase()}`;
+    basePart = base.toUpperCase().padEnd(8);
+    extPart = ext.toUpperCase().padEnd(3);
   }
 
-  const sizeLabel = type === "dir" ? "<DIR>" : size?.toLocaleString() ?? "0";
+  const sizePart = type === "dir"
+    ? "   <DIR>      "
+    : String(size?.toLocaleString() ?? "0").padStart(14);
+
+  const preStyle = "font-[inherit] text-[length:inherit] leading-[inherit]";
 
   return (
-    <div className="flex gap-x-3 sm:gap-x-4">
-      <span className="shrink-0 min-w-[8ch]">{dosName}</span>
-      <span className="shrink-0 min-w-[5ch] text-right">{sizeLabel}</span>
-      {date && (
-        <span className="shrink-0 hidden sm:inline text-[var(--dos-prompt)]">
-          {date}
-        </span>
-      )}
-      {time && (
-        <span className="shrink-0 hidden sm:inline text-[var(--dos-prompt)]">
-          {time}
-        </span>
-      )}
-    </div>
+    <pre className={preStyle}>
+      {basePart} {extPart} {sizePart}
+      {date && <span className="hidden sm:inline"> {date}</span>}
+      {time && <span className="hidden sm:inline"> {time}</span>}
+    </pre>
   );
 }

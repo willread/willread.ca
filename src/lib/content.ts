@@ -2,12 +2,13 @@ import fs from "fs";
 import path from "path";
 
 export interface FileEntry {
-  name: string;
+  name: string;       // 8.3 DOS name e.g. "HELLO~1.TXT"
+  slug: string;       // original slug for URL routing
   type: "file" | "dir" | "link";
-  size: number;
+  size: number;       // bytes (files) or child count (dirs)
   date: string;
   time: string;
-  url?: string; // for .lnk files
+  url?: string;       // for .lnk files
 }
 
 export interface DirListing {
@@ -36,6 +37,15 @@ function formatDate(d: Date): { date: string; time: string } {
   };
 }
 
+/** Convert a filename to 8.3 DOS format. Base capped at 8 chars with ~1 if truncated. */
+function toDos83(filename: string, ext: string): string {
+  let base = filename.toUpperCase();
+  if (base.length > 8) {
+    base = base.slice(0, 6) + "~1";
+  }
+  return ext ? `${base}.${ext.toUpperCase()}` : base;
+}
+
 /** List a content directory. Returns null if path doesn't exist or isn't a directory. */
 export function getDirListing(slugPath: string = ""): DirListing | null {
   const fullPath = path.join(CONTENT_DIR, slugPath);
@@ -53,26 +63,31 @@ export function getDirListing(slugPath: string = ""): DirListing | null {
 
     if (stat.isDirectory()) {
       entries.push({
-        name: item,
+        name: item.toUpperCase().slice(0, 8),
+        slug: item.toLowerCase(),
         type: "dir",
         size: fs.readdirSync(itemPath).length,
         date,
         time,
       });
     } else if (item.endsWith(".md")) {
+      const base = item.replace(/\.md$/, "");
       entries.push({
-        name: item.replace(/\.md$/, ".TXT"),
+        name: toDos83(base, "TXT"),
+        slug: base.toLowerCase(),
         type: "file",
-        size: fs.readFileSync(itemPath, "utf-8").length,
+        size: stat.size,
         date,
         time,
       });
     } else if (item.endsWith(".lnk")) {
+      const base = item.replace(/\.lnk$/, "");
       const url = fs.readFileSync(itemPath, "utf-8").trim();
       entries.push({
-        name: item.replace(/\.lnk$/, ".LNK"),
+        name: toDos83(base, "LNK"),
+        slug: base.toLowerCase(),
         type: "link",
-        size: url.length,
+        size: stat.size,
         date,
         time,
         url,
@@ -95,8 +110,9 @@ export function getFileContent(slugPath: string): FileContent | null {
   const mdPath = path.join(CONTENT_DIR, slugPath + ".md");
   if (!fs.existsSync(mdPath)) return null;
 
+  const base = path.basename(slugPath);
   return {
-    name: path.basename(slugPath).toUpperCase() + ".TXT",
+    name: toDos83(base, "TXT"),
     body: fs.readFileSync(mdPath, "utf-8"),
   };
 }
