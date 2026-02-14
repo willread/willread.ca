@@ -1,17 +1,17 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { getDirListing, getFileContent, getAllPaths } from "@/lib/content";
 import { toDosPath, parentSlug } from "@/lib/dos";
-import TypedCommand from "@/components/TypedCommand";
 import DirListing from "@/components/DirListing";
 import ClickableDir from "@/components/ClickableDir";
 import FileView from "@/components/FileView";
 import TerminalBlock from "@/components/TerminalBlock";
 import SetCurrentDir from "@/components/SetCurrentDir";
+import CdFromParam from "@/components/CdFromParam";
 
 interface Props {
   params: Promise<{ slug?: string[] }>;
-  searchParams: Promise<{ from?: string }>;
 }
 
 function slugFromParams(slug?: string[]): string {
@@ -46,9 +46,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: `will://${slugPath}` };
 }
 
-export default async function Page({ params, searchParams }: Props) {
+export default async function Page({ params }: Props) {
   const slugPath = slugFromParams((await params).slug);
-  const { from } = await searchParams;
 
   // File view — TYPE then root DIR for navigation
   const file = getFileContent(slugPath);
@@ -71,35 +70,12 @@ export default async function Page({ params, searchParams }: Props) {
   const dir = getDirListing(slugPath);
   if (dir) {
     const parent = parentSlug(slugPath);
-    // Determine CD command based on navigation source
-    let cdCommand: string | null = null;
-    let cdPromptSlug = "";
-    if (from) {
-      const fromSlug = from === "/" ? "" : from;
-      const fromDepth = fromSlug ? fromSlug.split("/").filter(Boolean).length : 0;
-      const toDepth = slugPath ? slugPath.split("/").filter(Boolean).length : 0;
-
-      if (fromDepth > toDepth) {
-        // Going up (e.g. posts → root)
-        cdCommand = "CD ..";
-        cdPromptSlug = fromSlug;
-      } else if (toDepth > fromDepth) {
-        // Going down (e.g. root → posts)
-        const dirName = slugPath.split("/").pop()?.toUpperCase();
-        if (dirName) {
-          cdCommand = `CD ${dirName}`;
-          cdPromptSlug = fromSlug;
-        }
-      }
-    }
     return (
       <TerminalBlock id={`dir:${slugPath}`}>
         <SetCurrentDir slugPath={slugPath} />
-        {cdCommand && (
-          <TypedCommand id={`cd-${slugPath}-${from}`} slugPath={cdPromptSlug} command={cdCommand}>
-            <div />
-          </TypedCommand>
-        )}
+        <Suspense>
+          <CdFromParam slugPath={slugPath} />
+        </Suspense>
         <DirListing slugPath={slugPath} entries={dir.entries} parentSlug={parent} />
       </TerminalBlock>
     );
