@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getDirListing, getFileContent, getAllPaths } from "@/lib/content";
 import { toDosPath, parentSlug } from "@/lib/dos";
@@ -101,7 +102,5 @@ export default async function Page({ params, searchParams }: Props) {
     );
   }
 
-  return (
-    <div className="text-[var(--dos-prompt)]">Bad command or file name</div>
-  );
+  notFound();
 }
