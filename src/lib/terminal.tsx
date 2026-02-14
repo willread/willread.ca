@@ -29,7 +29,6 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
   const currentRef = useRef<CurrentBlock | null>(null);
 
   const register = useCallback((id: string, content: ReactNode) => {
-    // If there's existing content with a DIFFERENT id, push it to history
     if (currentRef.current && currentRef.current.id !== id) {
       const prev = currentRef.current.content;
       setHistory((h) => [...h, prev]);
