@@ -5,7 +5,6 @@ import { FileEntry } from "@/lib/content";
 import { toDosPath } from "@/lib/dos";
 import { pushAnimating, popAnimating } from "@/lib/animation-state";
 import { CommandQueue, useCommandQueue } from "@/lib/command-queue";
-import { useTerminal } from "@/lib/terminal";
 import DirListing from "./DirListing";
 
 interface Props {
@@ -16,7 +15,6 @@ interface Props {
 
 export default function ClickableDir({ slugPath, entries, parentSlug }: Props) {
   const { allDone: parentDone, isStatic } = useCommandQueue();
-  const { setCurrentDir } = useTerminal();
   const [clicked, setClicked] = useState(false);
   const prompt = `${toDosPath(slugPath)}>`;
 
@@ -44,7 +42,7 @@ export default function ClickableDir({ slugPath, entries, parentSlug }: Props) {
     return (
       <div
         className="group mt-4 flex items-center cursor-pointer hover:bg-[rgba(85,255,85,0.2)] hover:text-black active:bg-[rgba(85,255,85,0.2)] active:text-[var(--dos-link)] transition-none"
-        onClick={() => { setClicked(true); setCurrentDir(slugPath); }}
+        onClick={() => setClicked(true)}
       >
         <span className="text-[var(--dos-prompt)]">{prompt}</span>
         <span className="cursor-blink text-[var(--dos-highlight)] group-hover:hidden">▓</span>

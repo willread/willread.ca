@@ -6,8 +6,6 @@ import DirListing from "@/components/DirListing";
 import ClickableDir from "@/components/ClickableDir";
 import FileView from "@/components/FileView";
 import TerminalBlock from "@/components/TerminalBlock";
-import SetCurrentDir from "@/components/SetCurrentDir";
-import CdFromParam from "@/components/CdFromParam";
 
 interface Props {
   params: Promise<{ slug?: string[] }>;
@@ -56,7 +54,6 @@ export default async function Page({ params }: Props) {
     const grandparent = parentSlug(fileParent);
     return (
       <TerminalBlock id={`file:${slugPath}`}>
-        <SetCurrentDir slugPath={fileParent} />
         <FileView slugPath={fileParent} fileName={file.name} content={file.body} />
         {parentDir && (
           <ClickableDir slugPath={fileParent} entries={parentDir.entries} parentSlug={grandparent} />
@@ -71,8 +68,6 @@ export default async function Page({ params }: Props) {
     const parent = parentSlug(slugPath);
     return (
       <TerminalBlock id={`dir:${slugPath}`}>
-        <SetCurrentDir slugPath={slugPath} />
-        <CdFromParam slugPath={slugPath} />
         <DirListing slugPath={slugPath} entries={dir.entries} parentSlug={parent} />
       </TerminalBlock>
     );
