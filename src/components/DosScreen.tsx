@@ -9,7 +9,8 @@ export default function DosScreen({ children }: { children: ReactNode }) {
   const { history, pushSnapshot } = useTerminal();
   const pathname = usePathname();
   const contentRef = useRef<HTMLDivElement>(null);
-  const prevPathnameRef = useRef<string | null>(null);
+  const prevPathnameRef = useRef<string>(pathname);
+  const snapshotTakenRef = useRef<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const slugPath = pathname === "/" ? "" : pathname.slice(1);
@@ -17,10 +18,11 @@ export default function DosScreen({ children }: { children: ReactNode }) {
   // When pathname changes, snapshot the current content and push to history
   useEffect(() => {
     if (
-      prevPathnameRef.current !== null &&
       prevPathnameRef.current !== pathname &&
+      snapshotTakenRef.current !== prevPathnameRef.current &&
       contentRef.current
     ) {
+      snapshotTakenRef.current = prevPathnameRef.current;
       pushSnapshot(contentRef.current.innerHTML);
     }
     prevPathnameRef.current = pathname;
@@ -33,7 +35,6 @@ export default function DosScreen({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-8 max-w-4xl mx-auto">
-      {/* Previous terminal output (frozen HTML snapshots) */}
       {history.map((html, i) => (
         <div
           key={i}
@@ -42,7 +43,6 @@ export default function DosScreen({ children }: { children: ReactNode }) {
         />
       ))}
 
-      {/* Live current content */}
       <div ref={contentRef}>{children}</div>
 
       <DosCursor slugPath={slugPath} />
