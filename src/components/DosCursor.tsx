@@ -1,15 +1,21 @@
+"use client";
+
 import { toDosPath } from "@/lib/dos";
+import { useIsAnimating } from "@/lib/animation-state";
 
 interface Props {
   slugPath?: string;
 }
 
-/** Blinking cursor prompt at the bottom of the screen */
 export default function DosCursor({ slugPath = "" }: Props) {
+  const animating = useIsAnimating();
+
   return (
     <div className="mt-4 flex items-center">
       <span className="text-[var(--dos-prompt)]">{toDosPath(slugPath)}&gt;</span>
-      <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
+      {!animating && (
+        <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
+      )}
     </div>
   );
 }

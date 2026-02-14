@@ -5,16 +5,19 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   useRef,
   ReactNode,
 } from "react";
+import { setAnimating } from "@/lib/animation-state";
 
 interface QueueContext {
   register: (id: string) => number;
   complete: (index: number) => void;
   activeIndex: number;
-  /** When true, all commands render instantly (no animation) */
   isStatic: boolean;
+  allDone: boolean;
+  totalCommands: number;
 }
 
 const CommandQueueContext = createContext<QueueContext>({
@@ -22,6 +25,8 @@ const CommandQueueContext = createContext<QueueContext>({
   complete: () => {},
   activeIndex: 0,
   isStatic: false,
+  allDone: true,
+  totalCommands: 0,
 });
 
 export function CommandQueue({ children }: { children: ReactNode }) {
@@ -42,14 +47,25 @@ export function CommandQueue({ children }: { children: ReactNode }) {
     setActiveIndex((prev) => Math.max(prev, index + 1));
   }, []);
 
+  const totalCommands = counterRef.current;
+  const allDone = activeIndex >= totalCommands;
+
+  // Signal global animation state
+  useEffect(() => {
+    if (totalCommands > 0) {
+      setAnimating(!allDone);
+    }
+  }, [allDone, totalCommands]);
+
   return (
-    <CommandQueueContext.Provider value={{ register, complete, activeIndex, isStatic: false }}>
+    <CommandQueueContext.Provider
+      value={{ register, complete, activeIndex, isStatic: false, allDone, totalCommands }}
+    >
       {children}
     </CommandQueueContext.Provider>
   );
 }
 
-/** Renders all commands instantly with no animation */
 export function StaticCommandQueue({ children }: { children: ReactNode }) {
   return (
     <CommandQueueContext.Provider
@@ -58,6 +74,8 @@ export function StaticCommandQueue({ children }: { children: ReactNode }) {
         complete: () => {},
         activeIndex: Infinity,
         isStatic: true,
+        allDone: true,
+        totalCommands: 0,
       }}
     >
       {children}

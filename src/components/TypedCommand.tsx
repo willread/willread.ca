@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { ReactNode, useState, useLayoutEffect, useRef, useMemo } from "react";
 import { toDosPath } from "@/lib/dos";
 import { useCommandQueue } from "@/lib/command-queue";
 
@@ -25,53 +25,63 @@ export default function TypedCommand({
   const myIndex = useMemo(() => register(id), [id, register]);
   const isMyTurn = activeIndex >= myIndex;
 
-  const [hydrated, setHydrated] = useState(false);
-  const [started, setStarted] = useState(false);
-  const [typedChars, setTypedChars] = useState(command.length); // match SSR
-  const [showContent, setShowContent] = useState(true); // match SSR
-  const [animDone, setAnimDone] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Initial state matches SSR: full content, done
+  const [chars, setChars] = useState(command.length);
+  const [fadeIn, setFadeIn] = useState(true);
+  const [done, setDone] = useState(true);
 
-  const cleanup = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-  }, []);
+  useLayoutEffect(() => {
+    // Static or already running — skip
+    if (isStatic) return;
 
-  // Mark hydrated
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
+    // Reset to start animation when it's our turn
+    if (isMyTurn && done) {
+      setChars(0);
+      setFadeIn(false);
+      setDone(false);
 
-  // Start typing when hydrated + it's our turn + haven't started yet
-  useEffect(() => {
-    if (isStatic || !hydrated || !isMyTurn || started) return;
-    setStarted(true);
-    setTypedChars(0);
-    setShowContent(false);
-    setAnimDone(false);
+      let i = 0;
+      let fadeTimeout: ReturnType<typeof setTimeout>;
+      let doneTimeout: ReturnType<typeof setTimeout>;
 
-    let i = 0;
-    intervalRef.current = setInterval(() => {
-      i++;
-      setTypedChars(i);
-      if (i >= command.length) {
-        clearInterval(intervalRef.current!);
-        setShowContent(true);
-        timeoutRef.current = setTimeout(() => {
-          setAnimDone(true);
-          complete(myIndex);
-        }, fadeDuration);
-      }
-    }, speed);
+      const interval = setInterval(() => {
+        i++;
+        setChars(i);
+        if (i >= command.length) {
+          clearInterval(interval);
+          fadeTimeout = setTimeout(() => {
+            setFadeIn(true);
+            doneTimeout = setTimeout(() => {
+              setDone(true);
+              complete(myIndex);
+            }, fadeDuration);
+          }, 50);
+        }
+      }, speed);
 
-    return cleanup;
-  }, [isMyTurn, hydrated, isStatic, started, command.length, speed, fadeDuration, myIndex, complete, cleanup]);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(fadeTimeout);
+        clearTimeout(doneTimeout);
+        // Reset to full state for Strict Mode remount
+        setChars(command.length);
+        setFadeIn(true);
+        setDone(true);
+      };
+    }
+
+    // Not our turn — hide
+    if (!isMyTurn) {
+      setChars(0);
+      setFadeIn(false);
+      setDone(false);
+    }
+  }, [isMyTurn, isStatic]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const prompt = `${toDosPath(slugPath)}>`;
 
-  // Static mode (history): instant render
-  if (isStatic) {
+  // Static (history) or done
+  if (isStatic || done) {
     return (
       <div>
         <div className="text-[var(--dos-prompt)]">{prompt}{command}</div>
@@ -80,43 +90,34 @@ export default function TypedCommand({
     );
   }
 
-  // Before hydration or animation done: show full content (matches SSR)
-  if (!hydrated || animDone) {
+  // Not our turn — SEO-safe hidden
+  if (!isMyTurn) {
     return (
-      <div>
-        <div className="text-[var(--dos-prompt)]">{prompt}{command}</div>
-        <div>{children}</div>
-      </div>
-    );
-  }
-
-  // Hydrated but not our turn yet: hide everything (SEO content already served)
-  if (!isMyTurn && !started) {
-    return (
-      <div style={{ position: "absolute", opacity: 0, height: 0, overflow: "hidden" }}>
+      <div aria-hidden style={{ position: "absolute", left: "-9999px", opacity: 0 }}>
         <div>{prompt}{command}</div>
         <div>{children}</div>
       </div>
     );
   }
 
-  // Animating: typing + fade
-  const isTyping = typedChars < command.length;
+  // Animating
+  const typing = chars < command.length;
 
   return (
     <div>
       <div className="text-[var(--dos-prompt)]">
         {prompt}
-        <span>{command.slice(0, typedChars)}</span>
-        {isTyping && (
+        <span>{command.slice(0, chars)}</span>
+        {typing && (
           <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
         )}
       </div>
       <div
-        style={{
-          opacity: showContent ? 1 : 0,
-          transition: `opacity ${fadeDuration}ms ease-in`,
-        }}
+        style={
+          fadeIn
+            ? { opacity: 1, transition: `opacity ${fadeDuration}ms ease-in` }
+            : { opacity: 0 }
+        }
       >
         {children}
       </div>
