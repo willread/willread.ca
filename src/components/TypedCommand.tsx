@@ -12,8 +12,8 @@ interface Props {
   speed?: number;
 }
 
-// line-height 1.3 * 16px = 20.8px
-const LINE_HEIGHT = 20.8;
+// line-height 1.3 * 22px = 28.6px
+const LINE_HEIGHT = 28.6;
 
 export default function TypedCommand({
   id,
@@ -123,9 +123,11 @@ export default function TypedCommand({
   // Typing or revealing or done
   const typing = phase === "typing";
   const contentStyle: React.CSSProperties =
-    revealHeight !== null
-      ? { maxHeight: revealHeight, overflow: "hidden" }
-      : {};
+    typing
+      ? { height: 0, overflow: "hidden", position: "absolute", visibility: "hidden" }
+      : revealHeight !== null
+        ? { maxHeight: revealHeight, overflow: "hidden" }
+        : {};
 
   return (
     <div>
