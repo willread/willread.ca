@@ -15,12 +15,12 @@ export default function TypedCommand({
   slugPath,
   command,
   children,
-  speed = 35,
-  outputDelay = 150,
+  speed = 120,
+  outputDelay = 400,
 }: Props) {
   const [animating, setAnimating] = useState(false);
   const [typedChars, setTypedChars] = useState(command.length);
-  const [showOutput, setShowOutput] = useState(true);
+  const [outputOpacity, setOutputOpacity] = useState(1);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -29,13 +29,11 @@ export default function TypedCommand({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
-  // On mount (hydration), start the typing animation
   useEffect(() => {
-    // Brief delay to let hydration settle
     const start = setTimeout(() => {
       setAnimating(true);
       setTypedChars(0);
-      setShowOutput(false);
+      setOutputOpacity(0);
 
       let i = 0;
       intervalRef.current = setInterval(() => {
@@ -44,7 +42,7 @@ export default function TypedCommand({
         if (i >= command.length) {
           clearInterval(intervalRef.current!);
           timeoutRef.current = setTimeout(() => {
-            setShowOutput(true);
+            setOutputOpacity(1);
             setAnimating(false);
           }, outputDelay);
         }
@@ -69,16 +67,10 @@ export default function TypedCommand({
         )}
       </div>
       <div
-        style={
-          showOutput
-            ? undefined
-            : {
-                visibility: "hidden" as const,
-                position: "absolute" as const,
-                height: 0,
-                overflow: "hidden" as const,
-              }
-        }
+        style={{
+          opacity: outputOpacity,
+          transition: "opacity 0.6s ease-in",
+        }}
       >
         {children}
       </div>
