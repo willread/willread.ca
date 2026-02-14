@@ -26,6 +26,7 @@
 html, body {
   background: var(--dos-bg);
   color: var(--dos-fg);
+  overflow-x: hidden;
   font-family: "IBM VGA", "Courier New", monospace;
   font-size: 16px;
   line-height: 1.3;
