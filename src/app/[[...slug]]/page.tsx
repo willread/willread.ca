@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getDirListing, getFileContent, getAllPaths } from "@/lib/content";
 import { toDosPath, toHref, parentSlug } from "@/lib/dos";
 import DosPrompt from "@/components/DosPrompt";
+import TypedCommand from "@/components/TypedCommand";
 import DirListing from "@/components/DirListing";
 import FileView from "@/components/FileView";
 import TerminalBlock from "@/components/TerminalBlock";
@@ -81,14 +82,21 @@ export default async function Page({ params }: Props) {
     const dirName = slugPath.split("/").pop()?.toUpperCase();
     return (
       <TerminalBlock id={`dir:${slugPath}`}>
-        {dirName && (
-          <DosPrompt slugPath={parent ?? ""} command={`CD ${dirName}`} />
+        {dirName ? (
+          <TypedCommand slugPath={parent ?? ""} command={`CD ${dirName}`}>
+            <DirListing
+              slugPath={slugPath}
+              entries={dir.entries}
+              parentSlug={parent}
+            />
+          </TypedCommand>
+        ) : (
+          <DirListing
+            slugPath={slugPath}
+            entries={dir.entries}
+            parentSlug={parent}
+          />
         )}
-        <DirListing
-          slugPath={slugPath}
-          entries={dir.entries}
-          parentSlug={parent}
-        />
       </TerminalBlock>
     );
   }

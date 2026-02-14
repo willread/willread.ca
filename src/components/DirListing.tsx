@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FileEntry } from "@/lib/content";
 import { toDosPath, toHref, entryToSlug } from "@/lib/dos";
-import DosPrompt from "./DosPrompt";
+import TypedCommand from "./TypedCommand";
 
 interface Props {
   slugPath: string;
@@ -20,9 +20,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
     .reduce((sum, e) => sum + e.size, 0);
 
   return (
-    <div>
-      <DosPrompt slugPath={slugPath} command="DIR" />
-
+    <TypedCommand slugPath={slugPath} command="DIR">
       <div className="mt-1"> Volume in drive C is WILL</div>
       <div> Volume Serial Number is H0M3-P4G3</div>
       <div className="mt-1 mb-2"> Directory of {dosPath}</div>
@@ -71,7 +69,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
         {"     "}
         {dirCount + 2} Dir(s){"  "}420,694,200 bytes free
       </div>
-    </div>
+    </TypedCommand>
   );
 }
 

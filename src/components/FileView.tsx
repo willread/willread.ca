@@ -1,7 +1,7 @@
 "use client";
 
 import Markdown from "react-markdown";
-import DosPrompt from "./DosPrompt";
+import TypedCommand from "./TypedCommand";
 
 interface Props {
   slugPath: string;
@@ -52,11 +52,10 @@ const markdownComponents = {
 
 export default function FileView({ slugPath, fileName, content }: Props) {
   return (
-    <div>
-      <DosPrompt slugPath={slugPath} command={`TYPE ${fileName}`} />
+    <TypedCommand slugPath={slugPath} command={`TYPE ${fileName}`}>
       <div className="mt-2 leading-relaxed break-words">
         <Markdown components={markdownComponents}>{content}</Markdown>
       </div>
-    </div>
+    </TypedCommand>
   );
 }
