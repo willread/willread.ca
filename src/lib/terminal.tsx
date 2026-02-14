@@ -17,20 +17,25 @@ interface CurrentBlock {
 interface TerminalContextValue {
   history: ReactNode[];
   navKey: number;
+  currentDir: string;
   register: (id: string, content: ReactNode) => void;
   forceNav: () => void;
+  setCurrentDir: (dir: string) => void;
 }
 
 const TerminalContext = createContext<TerminalContextValue>({
   history: [],
   navKey: 0,
+  currentDir: "",
   register: () => {},
   forceNav: () => {},
+  setCurrentDir: () => {},
 });
 
 export function TerminalProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<ReactNode[]>([]);
   const [navKey, setNavKey] = useState(0);
+  const [currentDir, setCurrentDir] = useState("");
   const currentRef = useRef<CurrentBlock | null>(null);
   const lastPushedRef = useRef<string | null>(null);
 
@@ -60,7 +65,7 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <TerminalContext.Provider value={{ history, navKey, register, forceNav }}>
+    <TerminalContext.Provider value={{ history, navKey, currentDir, register, forceNav, setCurrentDir }}>
       {children}
     </TerminalContext.Provider>
   );

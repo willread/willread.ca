@@ -6,7 +6,7 @@ import { StaticCommandQueue } from "@/lib/command-queue";
 import DosCursor from "./DosCursor";
 
 export default function DosScreen({ children }: { children: ReactNode }) {
-  const { history, navKey } = useTerminal();
+  const { history, navKey, currentDir } = useTerminal();
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +46,7 @@ export default function DosScreen({ children }: { children: ReactNode }) {
         {children}
       </div>
 
-      <DosCursor slugPath="" />
+      <DosCursor slugPath={currentDir} />
       <div ref={bottomRef} className="h-16" />
     </div>
   );
