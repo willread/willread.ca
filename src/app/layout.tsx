@@ -6,6 +6,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "will://",
   description: "Will's personal homepage",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.jpg",
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
