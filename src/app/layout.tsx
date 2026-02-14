@@ -11,6 +11,13 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.jpg",
   },
   manifest: "/manifest.json",
+  openGraph: {
+    images: [{ url: "/og-image.jpg" }],
+  },
+  twitter: {
+    card: "summary",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function RootLayout({
