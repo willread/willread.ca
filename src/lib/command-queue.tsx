@@ -17,7 +17,6 @@ interface QueueContext {
   activeIndex: number;
   isStatic: boolean;
   allDone: boolean;
-  totalCommands: number;
 }
 
 const CommandQueueContext = createContext<QueueContext>({
@@ -26,13 +25,13 @@ const CommandQueueContext = createContext<QueueContext>({
   activeIndex: 0,
   isStatic: false,
   allDone: true,
-  totalCommands: 0,
 });
 
 export function CommandQueue({ children }: { children: ReactNode }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const counterRef = useRef(0);
   const registeredRef = useRef<Map<string, number>>(new Map());
+  const [totalRegistered, setTotalRegistered] = useState(0);
 
   const register = useCallback((id: string) => {
     if (registeredRef.current.has(id)) {
@@ -40,6 +39,7 @@ export function CommandQueue({ children }: { children: ReactNode }) {
     }
     const idx = counterRef.current++;
     registeredRef.current.set(id, idx);
+    setTotalRegistered(counterRef.current);
     return idx;
   }, []);
 
@@ -47,19 +47,17 @@ export function CommandQueue({ children }: { children: ReactNode }) {
     setActiveIndex((prev) => Math.max(prev, index + 1));
   }, []);
 
-  const totalCommands = counterRef.current;
-  const allDone = activeIndex >= totalCommands;
-
   // Signal global animation state
   useEffect(() => {
-    if (totalCommands > 0) {
-      setAnimating(!allDone);
+    if (totalRegistered > 0) {
+      setAnimating(activeIndex < totalRegistered);
     }
-  }, [allDone, totalCommands]);
+    return () => setAnimating(false);
+  }, [activeIndex, totalRegistered]);
 
   return (
     <CommandQueueContext.Provider
-      value={{ register, complete, activeIndex, isStatic: false, allDone, totalCommands }}
+      value={{ register, complete, activeIndex, isStatic: false, allDone: activeIndex >= totalRegistered }}
     >
       {children}
     </CommandQueueContext.Provider>
@@ -75,7 +73,6 @@ export function StaticCommandQueue({ children }: { children: ReactNode }) {
         activeIndex: Infinity,
         isStatic: true,
         allDone: true,
-        totalCommands: 0,
       }}
     >
       {children}

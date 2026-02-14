@@ -10,78 +10,98 @@ interface Props {
   command: string;
   children: ReactNode;
   speed?: number;
-  fadeDuration?: number;
 }
+
+// line-height 1.3 * 16px = 20.8px
+const LINE_HEIGHT = 20.8;
 
 export default function TypedCommand({
   id,
   slugPath,
   command,
   children,
-  speed = 100,
-  fadeDuration = 400,
+  speed = 50,
 }: Props) {
   const { register, complete, activeIndex, isStatic } = useCommandQueue();
   const myIndex = useMemo(() => register(id), [id, register]);
   const isMyTurn = activeIndex >= myIndex;
 
-  // Initial state matches SSR: full content, done
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Phase: "idle" (waiting) | "typing" | "revealing" | "done"
+  const [phase, setPhase] = useState<"idle" | "typing" | "revealing" | "done">("done");
   const [chars, setChars] = useState(command.length);
-  const [fadeIn, setFadeIn] = useState(true);
-  const [done, setDone] = useState(true);
+  const [revealHeight, setRevealHeight] = useState<number | null>(null); // null = show all
 
   useLayoutEffect(() => {
-    // Static or already running — skip
     if (isStatic) return;
 
-    // Reset to start animation when it's our turn
-    if (isMyTurn && done) {
+    if (isMyTurn) {
+      // Start animation
+      setPhase("typing");
       setChars(0);
-      setFadeIn(false);
-      setDone(false);
+      setRevealHeight(0);
 
-      let i = 0;
-      let fadeTimeout: ReturnType<typeof setTimeout>;
-      let doneTimeout: ReturnType<typeof setTimeout>;
+      let charIndex = 0;
+      let cancelled = false;
 
-      const interval = setInterval(() => {
-        i++;
-        setChars(i);
-        if (i >= command.length) {
-          clearInterval(interval);
-          fadeTimeout = setTimeout(() => {
-            setFadeIn(true);
-            doneTimeout = setTimeout(() => {
-              setDone(true);
+      const typeInterval = setInterval(() => {
+        if (cancelled) return;
+        charIndex++;
+        setChars(charIndex);
+        if (charIndex >= command.length) {
+          clearInterval(typeInterval);
+          // Small pause then start revealing content
+          setTimeout(() => {
+            if (cancelled) return;
+            setPhase("revealing");
+
+            const totalHeight = contentRef.current?.scrollHeight ?? 0;
+            if (totalHeight === 0) {
+              // No content to reveal
+              setRevealHeight(null);
+              setPhase("done");
               complete(myIndex);
-            }, fadeDuration);
+              return;
+            }
+
+            let currentHeight = 0;
+            const revealInterval = setInterval(() => {
+              if (cancelled) return;
+              currentHeight += LINE_HEIGHT;
+              if (currentHeight >= totalHeight) {
+                clearInterval(revealInterval);
+                setRevealHeight(null);
+                setPhase("done");
+                complete(myIndex);
+              } else {
+                setRevealHeight(currentHeight);
+              }
+            }, speed);
           }, 50);
         }
       }, speed);
 
       return () => {
-        clearInterval(interval);
-        clearTimeout(fadeTimeout);
-        clearTimeout(doneTimeout);
-        // Reset to full state for Strict Mode remount
+        cancelled = true;
+        clearInterval(typeInterval);
+        // Reset to SSR state for Strict Mode cleanup
         setChars(command.length);
-        setFadeIn(true);
-        setDone(true);
+        setRevealHeight(null);
+        setPhase("done");
       };
     }
 
-    // Not our turn — hide
-    if (!isMyTurn) {
-      setChars(0);
-      setFadeIn(false);
-      setDone(false);
-    }
+    // Not our turn — go idle
+    setPhase("idle");
+    setChars(0);
+    setRevealHeight(0);
   }, [isMyTurn, isStatic]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const prompt = `${toDosPath(slugPath)}>`;
 
-  // Static (history) or done
-  if (isStatic || done) {
+  // Static mode (history) — render everything instantly
+  if (isStatic) {
     return (
       <div>
         <div className="text-[var(--dos-prompt)]">{prompt}{command}</div>
@@ -90,18 +110,22 @@ export default function TypedCommand({
     );
   }
 
-  // Not our turn — SEO-safe hidden
-  if (!isMyTurn) {
+  // Not our turn — hidden but SEO-accessible
+  if (phase === "idle") {
     return (
-      <div aria-hidden style={{ position: "absolute", left: "-9999px", opacity: 0 }}>
+      <div aria-hidden style={{ position: "absolute", left: "-9999px", opacity: 0, pointerEvents: "none" }}>
         <div>{prompt}{command}</div>
         <div>{children}</div>
       </div>
     );
   }
 
-  // Animating
-  const typing = chars < command.length;
+  // Typing or revealing or done
+  const typing = phase === "typing";
+  const contentStyle: React.CSSProperties =
+    revealHeight !== null
+      ? { maxHeight: revealHeight, overflow: "hidden" }
+      : {};
 
   return (
     <div>
@@ -112,13 +136,7 @@ export default function TypedCommand({
           <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
         )}
       </div>
-      <div
-        style={
-          fadeIn
-            ? { opacity: 1, transition: `opacity ${fadeDuration}ms ease-in` }
-            : { opacity: 0 }
-        }
-      >
+      <div ref={contentRef} style={contentStyle}>
         {children}
       </div>
     </div>

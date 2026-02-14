@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FileEntry } from "@/lib/content";
 import { toDosPath, toHref, entryToSlug } from "@/lib/dos";
+import { useCommandQueue } from "@/lib/command-queue";
 import TypedCommand from "./TypedCommand";
 
 interface Props {
@@ -15,6 +16,7 @@ const linkClass = "block hover:bg-[#aaa] hover:text-black transition-none";
 const linkStyle = { color: "#ffffff" };
 
 export default function DirListing({ slugPath, entries, parentSlug }: Props) {
+  const { isStatic } = useCommandQueue();
   const dosPath = toDosPath(slugPath);
   const fileCount = entries.filter((e) => e.type !== "dir").length;
   const dirCount = entries.filter((e) => e.type === "dir").length;
@@ -30,12 +32,32 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
 
       <DirRow name="." type="dir" />
       {parentSlug !== undefined && (
-        <Link href={toHref(parentSlug)} className={linkClass} style={linkStyle}>
-          <DirRow name=".." type="dir" />
-        </Link>
+        isStatic ? (
+          <div style={linkStyle}><DirRow name=".." type="dir" /></div>
+        ) : (
+          <Link href={`${toHref(parentSlug)}?cd=${encodeURIComponent(slugPath)}`} className={linkClass} style={linkStyle}>
+            <DirRow name=".." type="dir" />
+          </Link>
+        )
       )}
 
       {entries.map((entry) => {
+        const row = (
+          <DirRow
+            key={entry.name}
+            name={entry.name}
+            type={entry.type}
+            size={entry.size}
+            date={entry.date}
+            time={entry.time}
+          />
+        );
+
+        // Static mode (history) — no links
+        if (isStatic) {
+          return <div key={entry.name} style={linkStyle}>{row}</div>;
+        }
+
         // External links open in new tab
         if (entry.type === "link" && entry.url) {
           return (
@@ -47,13 +69,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
               className={linkClass}
               style={linkStyle}
             >
-              <DirRow
-                name={entry.name}
-                type={entry.type}
-                size={entry.size}
-                date={entry.date}
-                time={entry.time}
-              />
+              {row}
             </a>
           );
         }
@@ -65,13 +81,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
 
         return (
           <Link key={entry.name} href={href} className={linkClass} style={linkStyle}>
-            <DirRow
-              name={entry.name}
-              type={entry.type}
-              size={entry.size}
-              date={entry.date}
-              time={entry.time}
-            />
+            {row}
           </Link>
         );
       })}
