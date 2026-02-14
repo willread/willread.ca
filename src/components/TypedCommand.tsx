@@ -25,10 +25,10 @@ export default function TypedCommand({
   const myIndex = useMemo(() => register(id), [id, register]);
   const isMyTurn = activeIndex >= myIndex;
 
-  const [phase, setPhase] = useState<"idle" | "typing" | "fading" | "done">(
-    isStatic ? "done" : "idle"
-  );
-  const [typedChars, setTypedChars] = useState(isStatic ? command.length : 0);
+  // Start showing full content (matches SSR), animate after hydration
+  const [hydrated, setHydrated] = useState(false);
+  const [phase, setPhase] = useState<"waiting" | "typing" | "fading" | "done">("done");
+  const [typedChars, setTypedChars] = useState(command.length);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -37,9 +37,23 @@ export default function TypedCommand({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
+  // Mark hydrated
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // After hydration, set up waiting state for commands that aren't first
+  useEffect(() => {
+    if (!hydrated || isStatic) return;
+    if (!isMyTurn) {
+      setPhase("waiting");
+      setTypedChars(0);
+    }
+  }, [hydrated, isStatic, isMyTurn]);
+
   // Start typing when it's our turn
   useEffect(() => {
-    if (isStatic || !isMyTurn || phase !== "idle") return;
+    if (isStatic || !hydrated || !isMyTurn || phase === "typing" || phase === "fading" || phase === "done") return;
 
     setPhase("typing");
     setTypedChars(0);
@@ -59,11 +73,11 @@ export default function TypedCommand({
     }, speed);
 
     return cleanup;
-  }, [isMyTurn, isStatic, phase, command.length, speed, fadeDuration, myIndex, complete, cleanup]);
+  }, [isMyTurn, hydrated, isStatic, phase, command.length, speed, fadeDuration, myIndex, complete, cleanup]);
 
   const prompt = `${toDosPath(slugPath)}>`;
 
-  // Static: render instantly
+  // Static or done: render instantly
   if (isStatic || phase === "done") {
     return (
       <div>
@@ -73,8 +87,8 @@ export default function TypedCommand({
     );
   }
 
-  // Not our turn yet: hidden but in DOM for SEO
-  if (phase === "idle") {
+  // Waiting for turn: hidden but in DOM for SEO
+  if (phase === "waiting") {
     return (
       <div style={{ position: "absolute", opacity: 0, height: 0, overflow: "hidden" }}>
         <div>{prompt}{command}</div>
@@ -95,7 +109,7 @@ export default function TypedCommand({
       </div>
       <div
         style={{
-          opacity: phase === "fading" || phase === "done" ? 1 : 0,
+          opacity: phase === "fading" ? 1 : 0,
           transition: `opacity ${fadeDuration}ms ease-in`,
         }}
       >
