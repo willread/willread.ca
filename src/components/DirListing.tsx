@@ -85,10 +85,10 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
       })}
 
       <pre className="font-[inherit] text-[length:inherit] leading-[inherit] mt-1 flex">
-        <span>{`${`${fileCount} File(s)`.padEnd(13)}${`${totalBytes.toLocaleString()} bytes`}`}</span>
+        <span>{`${`${fileCount} File(s)`.padStart(12).padEnd(13)}${totalBytes.toLocaleString()} bytes`}</span>
       </pre>
       <pre className="font-[inherit] text-[length:inherit] leading-[inherit] flex">
-        <span>{`${`${dirCount + 2} Dir(s)`.padEnd(13)}${"420,694,200 bytes free"}`}</span>
+        <span>{`${`${dirCount + 2} Dir(s)`.padStart(12).padEnd(13)}420,694,200 bytes free`}</span>
       </pre>
     </TypedCommand>
   );
