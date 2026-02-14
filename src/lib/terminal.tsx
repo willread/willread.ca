@@ -32,19 +32,27 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<ReactNode[]>([]);
   const [navKey, setNavKey] = useState(0);
   const currentRef = useRef<CurrentBlock | null>(null);
+  const lastPushedRef = useRef<string | null>(null);
 
   const register = useCallback((id: string, content: ReactNode) => {
-    if (currentRef.current && currentRef.current.id !== id) {
+    // Same id — update content, don't push (handles Strict Mode re-runs)
+    if (currentRef.current && currentRef.current.id === id) {
+      currentRef.current = { id, content };
+      return;
+    }
+    // Different id — push previous to history (but not if already pushed)
+    if (currentRef.current && currentRef.current.id !== lastPushedRef.current) {
       const prev = currentRef.current.content;
+      lastPushedRef.current = currentRef.current.id;
       setHistory((h) => [...h, prev]);
     }
     currentRef.current = { id, content };
   }, []);
 
   const forceNav = useCallback(() => {
-    // Push current to history and bump navKey to force remount
     if (currentRef.current) {
       const prev = currentRef.current.content;
+      lastPushedRef.current = currentRef.current.id;
       setHistory((h) => [...h, prev]);
       currentRef.current = null;
     }

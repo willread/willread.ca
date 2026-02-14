@@ -14,10 +14,14 @@ interface Props {
 export default function TerminalBlock({ id, children }: Props) {
   const { register } = useTerminal();
   const wrapRef = useRef<HTMLDivElement>(null);
+  const navIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const uniqueId = `${id}:${++globalNavCounter}`;
-    register(uniqueId, children);
+    // Reuse same navId for same base id (Strict Mode re-runs)
+    if (!navIdRef.current || !navIdRef.current.startsWith(`${id}:`)) {
+      navIdRef.current = `${id}:${++globalNavCounter}`;
+    }
+    register(navIdRef.current, children);
   }, [id]);
 
   // Remove the SSR hide attribute once JS hydrates
