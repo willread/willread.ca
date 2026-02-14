@@ -37,7 +37,7 @@ export default function NotFoundClient() {
       <p className="text-[var(--dos-prompt)]">Bad command or file name</p>
       <Link
         href="/"
-        className="group mt-4 flex items-center cursor-pointer hover:bg-[var(--dos-link)] hover:text-black active:bg-[rgba(85,255,85,0.2)] active:text-[var(--dos-link)] transition-none"
+        className="group mt-4 flex items-center cursor-pointer hover:bg-[rgba(85,255,85,0.2)] hover:text-black active:bg-[rgba(85,255,85,0.2)] active:text-[var(--dos-link)] transition-none"
       >
         <span className="text-[var(--dos-prompt)]">{prompt}</span>
         <span className="cursor-blink text-[var(--dos-highlight)] group-hover:hidden">▓</span>

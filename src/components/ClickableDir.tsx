@@ -41,7 +41,7 @@ export default function ClickableDir({ slugPath, entries, parentSlug }: Props) {
   if (!clicked) {
     return (
       <div
-        className="group mt-4 flex items-center cursor-pointer hover:bg-[var(--dos-link)] hover:text-black active:bg-[rgba(85,255,85,0.2)] active:text-[var(--dos-link)] transition-none"
+        className="group mt-4 flex items-center cursor-pointer hover:bg-[rgba(85,255,85,0.2)] hover:text-black active:bg-[rgba(85,255,85,0.2)] active:text-[var(--dos-link)] transition-none"
         onClick={() => setClicked(true)}
       >
         <span className="text-[var(--dos-prompt)]">{prompt}</span>
