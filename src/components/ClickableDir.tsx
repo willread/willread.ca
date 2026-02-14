@@ -14,17 +14,26 @@ interface Props {
 }
 
 export default function ClickableDir({ slugPath, entries, parentSlug }: Props) {
-  const { allDone: parentDone } = useCommandQueue();
+  const { allDone: parentDone, isStatic } = useCommandQueue();
   const [clicked, setClicked] = useState(false);
   const prompt = `${toDosPath(slugPath)}>`;
 
   // Hide the bottom DosCursor while we're showing our own clickable prompt
   useLayoutEffect(() => {
-    if (parentDone && !clicked) {
+    if (!isStatic && parentDone && !clicked) {
       pushAnimating();
       return () => popAnimating();
     }
-  }, [parentDone, clicked]);
+  }, [isStatic, parentDone, clicked]);
+
+  // In history/static mode — show completed DIR listing, no interaction
+  if (isStatic) {
+    return (
+      <div className="mt-4">
+        <DirListing slugPath={slugPath} entries={entries} parentSlug={parentSlug} />
+      </div>
+    );
+  }
 
   // Don't show until parent commands (e.g. TYPE) are done
   if (!parentDone) return null;
