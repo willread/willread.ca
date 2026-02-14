@@ -21,6 +21,7 @@ interface TerminalContextValue {
   register: (id: string, content: ReactNode) => void;
   forceNav: () => void;
   setCurrentDir: (dir: string) => void;
+  consumePrevDir: () => string | null;
 }
 
 const TerminalContext = createContext<TerminalContextValue>({
@@ -30,12 +31,29 @@ const TerminalContext = createContext<TerminalContextValue>({
   register: () => {},
   forceNav: () => {},
   setCurrentDir: () => {},
+  consumePrevDir: () => null,
 });
 
 export function TerminalProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<ReactNode[]>([]);
   const [navKey, setNavKey] = useState(0);
-  const [currentDir, setCurrentDir] = useState("");
+  const [currentDir, setCurrentDirState] = useState("");
+  const prevDirRef = useRef<string | null>(null);
+
+  const setCurrentDir = useCallback((dir: string) => {
+    setCurrentDirState((prev) => {
+      if (prev !== dir) {
+        prevDirRef.current = prev;
+      }
+      return dir;
+    });
+  }, []);
+
+  const consumePrevDir = useCallback(() => {
+    const prev = prevDirRef.current;
+    prevDirRef.current = null;
+    return prev;
+  }, []);
   const currentRef = useRef<CurrentBlock | null>(null);
   const lastPushedRef = useRef<string | null>(null);
 
@@ -65,7 +83,7 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <TerminalContext.Provider value={{ history, navKey, currentDir, register, forceNav, setCurrentDir }}>
+    <TerminalContext.Provider value={{ history, navKey, currentDir, register, forceNav, setCurrentDir, consumePrevDir }}>
       {children}
     </TerminalContext.Provider>
   );

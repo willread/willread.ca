@@ -1,6 +1,7 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useTerminal } from "@/lib/terminal";
 import TypedCommand from "./TypedCommand";
 
 interface Props {
@@ -8,13 +9,16 @@ interface Props {
 }
 
 export default function CdFromParam({ slugPath }: Props) {
-  const searchParams = useSearchParams();
-  const from = searchParams.get("from");
+  const { consumePrevDir } = useTerminal();
+  const [from, setFrom] = useState<string | null>(null);
 
-  if (!from) return null;
+  useEffect(() => {
+    setFrom(consumePrevDir());
+  }, [consumePrevDir]);
 
-  const fromSlug = from === "/" ? "" : from;
-  const fromDepth = fromSlug ? fromSlug.split("/").filter(Boolean).length : 0;
+  if (from === null) return null;
+
+  const fromDepth = from ? from.split("/").filter(Boolean).length : 0;
   const toDepth = slugPath ? slugPath.split("/").filter(Boolean).length : 0;
 
   let cdCommand: string | null = null;
@@ -22,12 +26,12 @@ export default function CdFromParam({ slugPath }: Props) {
 
   if (fromDepth > toDepth) {
     cdCommand = "CD ..";
-    cdPromptSlug = fromSlug;
+    cdPromptSlug = from;
   } else if (toDepth > fromDepth) {
     const dirName = slugPath.split("/").pop()?.toUpperCase();
     if (dirName) {
       cdCommand = `CD ${dirName}`;
-      cdPromptSlug = fromSlug;
+      cdPromptSlug = from;
     }
   }
 

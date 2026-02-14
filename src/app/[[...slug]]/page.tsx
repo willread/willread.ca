@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { Metadata } from "next";
 import { getDirListing, getFileContent, getAllPaths } from "@/lib/content";
 import { toDosPath, parentSlug } from "@/lib/dos";
@@ -73,9 +72,7 @@ export default async function Page({ params }: Props) {
     return (
       <TerminalBlock id={`dir:${slugPath}`}>
         <SetCurrentDir slugPath={slugPath} />
-        <Suspense>
-          <CdFromParam slugPath={slugPath} />
-        </Suspense>
+        <CdFromParam slugPath={slugPath} />
         <DirListing slugPath={slugPath} entries={dir.entries} parentSlug={parent} />
       </TerminalBlock>
     );
