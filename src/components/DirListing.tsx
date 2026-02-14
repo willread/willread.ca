@@ -40,7 +40,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
         isStatic ? (
           <div style={linkStyle}><DirRow name=".." type="dir" /></div>
         ) : (
-          <Link href={toHref(parentSlug)} className={linkClass} style={linkStyle}>
+          <Link href={`${toHref(parentSlug)}?from=${encodeURIComponent(slugPath)}`} className={linkClass} style={linkStyle}>
             <DirRow name=".." type="dir" />
           </Link>
         )
@@ -98,8 +98,13 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
           );
         }
 
+        // Add from param for directory navigation (to trigger CD command)
+        const finalHref = entry.type === "dir"
+          ? `${href}?from=${encodeURIComponent(slugPath)}`
+          : href;
+
         return (
-          <Link key={entry.name} href={href} className={linkClass} style={linkStyle}>
+          <Link key={entry.name} href={finalHref} className={linkClass} style={linkStyle}>
             {row}
           </Link>
         );

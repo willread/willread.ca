@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { getDirListing, getFileContent, getAllPaths } from "@/lib/content";
 import { toDosPath, parentSlug } from "@/lib/dos";
+import TypedCommand from "@/components/TypedCommand";
 import DirListing from "@/components/DirListing";
 import ClickableDir from "@/components/ClickableDir";
 import FileView from "@/components/FileView";
@@ -8,6 +9,7 @@ import TerminalBlock from "@/components/TerminalBlock";
 
 interface Props {
   params: Promise<{ slug?: string[] }>;
+  searchParams: Promise<{ from?: string }>;
 }
 
 function slugFromParams(slug?: string[]): string {
@@ -42,8 +44,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: `will://${slugPath}` };
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({ params, searchParams }: Props) {
   const slugPath = slugFromParams((await params).slug);
+  const { from } = await searchParams;
 
   // File view — TYPE then root DIR for navigation
   const file = getFileContent(slugPath);
@@ -61,12 +64,36 @@ export default async function Page({ params }: Props) {
     );
   }
 
-  // Directory listing — just DIR from the current path, no CD
+  // Directory listing
   const dir = getDirListing(slugPath);
   if (dir) {
     const parent = parentSlug(slugPath);
+    // Determine CD command based on navigation source
+    let cdCommand: string | null = null;
+    let cdPromptSlug = "";
+    if (from !== undefined) {
+      // Navigating from another directory
+      const fromIsChild = from.startsWith(slugPath) && from !== slugPath;
+      if (fromIsChild || (slugPath === "" && from)) {
+        // Going up (e.g. posts → root)
+        cdCommand = "CD ..";
+        cdPromptSlug = from;
+      } else {
+        // Going down (e.g. root → posts)
+        const dirName = slugPath.split("/").pop()?.toUpperCase();
+        if (dirName) {
+          cdCommand = `CD ${dirName}`;
+          cdPromptSlug = from;
+        }
+      }
+    }
     return (
       <TerminalBlock id={`dir:${slugPath}`}>
+        {cdCommand && (
+          <TypedCommand id={`cd-${slugPath}-${from}`} slugPath={cdPromptSlug} command={cdCommand}>
+            <div />
+          </TypedCommand>
+        )}
         <DirListing slugPath={slugPath} entries={dir.entries} parentSlug={parent} />
       </TerminalBlock>
     );
