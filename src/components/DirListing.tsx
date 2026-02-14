@@ -84,11 +84,11 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
         );
       })}
 
-      <pre className="font-[inherit] text-[length:inherit] leading-[inherit] mt-1">
-        {`        ${String(fileCount).padStart(3)} File(s)  ${totalBytes.toLocaleString().padStart(14)} bytes`}
+      <pre className="font-[inherit] text-[length:inherit] leading-[inherit] mt-1 flex">
+        <span>{`        ${String(fileCount).padStart(3)} File(s)  ${totalBytes.toLocaleString()} bytes`}</span>
       </pre>
-      <pre className="font-[inherit] text-[length:inherit] leading-[inherit]">
-        {`        ${String(dirCount + 2).padStart(3)} Dir(s)   420,694,200 bytes free`}
+      <pre className="font-[inherit] text-[length:inherit] leading-[inherit] flex">
+        <span>{`        ${String(dirCount + 2).padStart(3)} Dir(s)   420,694,200 bytes free`}</span>
       </pre>
     </TypedCommand>
   );
@@ -126,15 +126,15 @@ function DirRow({
   }
 
   const sizePart = type === "dir"
-    ? "   <DIR>      "
-    : String(size?.toLocaleString() ?? "0").padStart(14);
+    ? "<DIR>".padEnd(14)
+    : (size?.toLocaleString() ?? "0").padEnd(14);
 
-  const preStyle = "font-[inherit] text-[length:inherit] leading-[inherit]";
+  const preStyle = "font-[inherit] text-[length:inherit] leading-[inherit] flex";
 
   return (
     <pre className={preStyle}>
-      {basePart} {extPart} {sizePart}
-      {date && <span className="hidden sm:inline"> {date}</span>}
+      <span>{basePart} {extPart} {sizePart}</span>
+      {date && <span className="hidden sm:inline ml-auto"> {date}</span>}
       {time && <span className="hidden sm:inline"> {time}</span>}
     </pre>
   );
