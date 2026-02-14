@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FileEntry } from "@/lib/content";
@@ -19,7 +20,12 @@ const linkStyle = { color: "var(--dos-link)" };
 
 export default function DirListing({ slugPath, entries, parentSlug }: Props) {
   const { isStatic } = useCommandQueue();
-  const { forceNav } = useTerminal();
+  const { forceNav, setCurrentDir } = useTerminal();
+
+  // Update the bottom cursor prompt to reflect this directory
+  useEffect(() => {
+    setCurrentDir(slugPath);
+  }, [slugPath, setCurrentDir]);
   const pathname = usePathname();
   const router = useRouter();
   const dosPath = toDosPath(slugPath);
