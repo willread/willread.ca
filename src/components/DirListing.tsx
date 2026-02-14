@@ -100,7 +100,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
 
         // Add from param for directory navigation (to trigger CD command)
         const finalHref = entry.type === "dir"
-          ? `${href}?from=${encodeURIComponent(slugPath)}`
+          ? `${href}?from=${encodeURIComponent(slugPath || "/")}`
           : href;
 
         return (

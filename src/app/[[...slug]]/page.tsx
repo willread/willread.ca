@@ -71,19 +71,21 @@ export default async function Page({ params, searchParams }: Props) {
     // Determine CD command based on navigation source
     let cdCommand: string | null = null;
     let cdPromptSlug = "";
-    if (from !== undefined) {
-      // Navigating from another directory
-      const fromIsChild = from.startsWith(slugPath) && from !== slugPath;
-      if (fromIsChild || (slugPath === "" && from)) {
+    if (from) {
+      const fromSlug = from === "/" ? "" : from;
+      const fromDepth = fromSlug ? fromSlug.split("/").filter(Boolean).length : 0;
+      const toDepth = slugPath ? slugPath.split("/").filter(Boolean).length : 0;
+
+      if (fromDepth > toDepth) {
         // Going up (e.g. posts → root)
         cdCommand = "CD ..";
-        cdPromptSlug = from;
-      } else {
+        cdPromptSlug = fromSlug;
+      } else if (toDepth > fromDepth) {
         // Going down (e.g. root → posts)
         const dirName = slugPath.split("/").pop()?.toUpperCase();
         if (dirName) {
           cdCommand = `CD ${dirName}`;
-          cdPromptSlug = from;
+          cdPromptSlug = fromSlug;
         }
       }
     }
