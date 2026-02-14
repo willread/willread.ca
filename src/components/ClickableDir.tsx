@@ -33,13 +33,20 @@ export default function ClickableDir({ slugPath, entries, parentSlug }: Props) {
   if (!clicked) {
     return (
       <div
-        className="mt-4 flex items-center cursor-pointer hover:bg-[#aaa] hover:text-black transition-none"
-        style={{ color: "#ffffff", opacity: 0.5 }}
+        className="group mt-4 flex items-center cursor-pointer"
         onClick={() => setClicked(true)}
       >
         <span className="text-[var(--dos-prompt)]">{prompt}</span>
-        <span>DIR</span>
-        <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
+        <span className="cursor-blink text-[var(--dos-highlight)] group-hover:hidden">▓</span>
+        <span
+          className="group-hover:hidden"
+          style={{ opacity: 0.35, color: "var(--dos-prompt)", marginLeft: "-1ch" }}
+        >DIR</span>
+        <span
+          className="hidden group-hover:inline"
+          style={{ color: "var(--dos-highlight)" }}
+        >DIR</span>
+        <span className="cursor-blink text-[var(--dos-highlight)] hidden group-hover:inline">▓</span>
       </div>
     );
   }

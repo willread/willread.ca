@@ -35,7 +35,7 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
         isStatic ? (
           <div style={linkStyle}><DirRow name=".." type="dir" /></div>
         ) : (
-          <Link href={`${toHref(parentSlug)}?cd=${encodeURIComponent(slugPath)}`} className={linkClass} style={linkStyle}>
+          <Link href={toHref(parentSlug)} className={linkClass} style={linkStyle}>
             <DirRow name=".." type="dir" />
           </Link>
         )

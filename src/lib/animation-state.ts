@@ -1,24 +1,25 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useSyncExternalStore } from "react";
 
-type Listener = (animating: boolean) => void;
+type Listener = () => void;
 const listeners = new Set<Listener>();
 let currentlyAnimating = false;
 
 export function setAnimating(value: boolean) {
-  currentlyAnimating = value;
-  listeners.forEach((fn) => fn(value));
+  if (currentlyAnimating !== value) {
+    currentlyAnimating = value;
+    listeners.forEach((fn) => fn());
+  }
 }
 
 export function useIsAnimating(): boolean {
-  const [animating, setAnimating] = useState(currentlyAnimating);
-
-  useEffect(() => {
-    const handler = (value: boolean) => setAnimating(value);
-    listeners.add(handler);
-    return () => { listeners.delete(handler); };
-  }, []);
-
-  return animating;
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      listeners.add(onStoreChange);
+      return () => { listeners.delete(onStoreChange); };
+    },
+    () => currentlyAnimating,
+    () => true, // server snapshot: assume animating so DosCursor doesn't render on SSR
+  );
 }

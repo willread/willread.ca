@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { getDirListing, getFileContent, getAllPaths } from "@/lib/content";
 import { toDosPath, parentSlug } from "@/lib/dos";
-import TypedCommand from "@/components/TypedCommand";
 import DirListing from "@/components/DirListing";
 import ClickableDir from "@/components/ClickableDir";
 import FileView from "@/components/FileView";
@@ -9,7 +8,6 @@ import TerminalBlock from "@/components/TerminalBlock";
 
 interface Props {
   params: Promise<{ slug?: string[] }>;
-  searchParams: Promise<{ cd?: string }>; // cd = source slugPath when navigating via ".."
 }
 
 function slugFromParams(slug?: string[]): string {
@@ -44,9 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: `will://${slugPath}` };
 }
 
-export default async function Page({ params, searchParams }: Props) {
+export default async function Page({ params }: Props) {
   const slugPath = slugFromParams((await params).slug);
-  const { cd } = await searchParams;
 
   // File view — TYPE then root DIR for navigation
   const file = getFileContent(slugPath);
@@ -64,24 +61,12 @@ export default async function Page({ params, searchParams }: Props) {
     );
   }
 
-  // Directory listing
+  // Directory listing — just DIR from the current path, no CD
   const dir = getDirListing(slugPath);
   if (dir) {
     const parent = parentSlug(slugPath);
-    const dirName = slugPath.split("/").pop()?.toUpperCase();
-    // cd param = source slug when navigating via ".."
-    const isGoingUp = cd !== undefined;
-    const cdCommand = isGoingUp ? "CD .." : dirName ? `CD ${dirName}` : null;
-    // CD .. is typed from the child dir's prompt; CD DIRNAME from the parent's prompt
-    const cdPromptSlug = isGoingUp ? cd : (parent ?? "");
-    const blockKey = isGoingUp ? `dir:${slugPath}:from:${cd}` : `dir:${slugPath}`;
     return (
-      <TerminalBlock id={blockKey}>
-        {cdCommand && (
-          <TypedCommand id={`cd-${blockKey}`} slugPath={cdPromptSlug} command={cdCommand}>
-            <div />
-          </TypedCommand>
-        )}
+      <TerminalBlock id={`dir:${slugPath}`}>
         <DirListing slugPath={slugPath} entries={dir.entries} parentSlug={parent} />
       </TerminalBlock>
     );
