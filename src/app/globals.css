@@ -44,7 +44,6 @@ html, body {
 
 a {
   text-decoration: none;
-  color: inherit;
 }
 
 /* Hide terminal content until JS hydrates and takes over animation */
