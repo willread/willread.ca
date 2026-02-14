@@ -10,7 +10,8 @@ export default function DosScreen({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const slugPath = pathname === "/" ? "" : pathname.slice(1);
+  // Always show root prompt — all commands run from C:\
+  const slugPath = "";
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

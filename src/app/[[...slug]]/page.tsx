@@ -1,6 +1,5 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { getDirListing, getFileContent, getAllPaths, isValidPath } from "@/lib/content";
+import { getDirListing, getFileContent, getAllPaths } from "@/lib/content";
 import { toDosPath, parentSlug } from "@/lib/dos";
 import TypedCommand from "@/components/TypedCommand";
 import DirListing from "@/components/DirListing";
@@ -88,6 +87,7 @@ export default async function Page({ params }: Props) {
     );
   }
 
-  // Not found
-  notFound();
+  return (
+    <div className="text-[var(--dos-prompt)]">Bad command or file name</div>
+  );
 }
