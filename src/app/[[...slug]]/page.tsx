@@ -54,20 +54,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const slugPath = slugFromParams((await params).slug);
 
-  // File view — TYPE then parent DIR for navigation
+  // File view — TYPE then root DIR for navigation
   const file = getFileContent(slugPath);
   if (file) {
-    const parent = parentSlug(slugPath) ?? "";
-    const parentDir = getDirListing(parent);
+    const rootDir = getDirListing("");
     return (
       <TerminalBlock id={`file:${slugPath}`}>
-        <FileView slugPath={parent} fileName={file.name} content={file.body} />
-        {parentDir && (
+        <FileView slugPath="" fileName={file.name} content={file.body} />
+        {rootDir && (
           <div className="mt-4">
             <DirListing
-              slugPath={parent}
-              entries={parentDir.entries}
-              parentSlug={parentSlug(parent)}
+              slugPath=""
+              entries={rootDir.entries}
             />
           </div>
         )}
