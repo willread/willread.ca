@@ -1,11 +1,11 @@
 /** Shared DOS path/formatting utilities */
 
-const ROOT = "C:\\WILL";
+const ROOT = "C:\\";
 
-/** Convert a URL slug path to a DOS-style path: "" → "C:\WILL", "posts" → "C:\WILL\POSTS" */
+/** Convert a URL slug path to a DOS-style path: "" → "C:\", "posts" → "C:\POSTS" */
 export function toDosPath(slugPath: string): string {
   if (!slugPath) return ROOT;
-  return `${ROOT}\\${slugPath.toUpperCase().replace(/\//g, "\\")}`;
+  return `${ROOT}${slugPath.toUpperCase().replace(/\//g, "\\")}`;
 }
 
 /** Convert a slug path to a URL href: "" → "/", "posts" → "/posts" */
