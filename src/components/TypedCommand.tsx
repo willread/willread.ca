@@ -1,22 +1,16 @@
 "use client";
 
-import { ReactNode, useState, useEffect, useRef } from "react";
+import { ReactNode, useState, useEffect, useRef, useCallback } from "react";
 import { toDosPath } from "@/lib/dos";
 
 interface Props {
   slugPath: string;
   command: string;
   children: ReactNode;
-  /** ms per character */
   speed?: number;
-  /** ms delay after typing before showing output */
   outputDelay?: number;
 }
 
-/**
- * Animates typing a DOS command, then reveals the output.
- * Server-renders everything visible for SEO; client animates on hydration.
- */
 export default function TypedCommand({
   slugPath,
   command,
@@ -24,64 +18,67 @@ export default function TypedCommand({
   speed = 35,
   outputDelay = 150,
 }: Props) {
-  const [hydrated, setHydrated] = useState(false);
-  const [typedChars, setTypedChars] = useState(0);
-  const [showOutput, setShowOutput] = useState(false);
+  const [animating, setAnimating] = useState(false);
+  const [typedChars, setTypedChars] = useState(command.length);
+  const [showOutput, setShowOutput] = useState(true);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const cleanup = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  }, []);
+
+  // On mount (hydration), start the typing animation
   useEffect(() => {
-    setHydrated(true);
-    setTypedChars(0);
-    setShowOutput(false);
+    // Brief delay to let hydration settle
+    const start = setTimeout(() => {
+      setAnimating(true);
+      setTypedChars(0);
+      setShowOutput(false);
 
-    // Start typing
-    let i = 0;
-    intervalRef.current = setInterval(() => {
-      i++;
-      setTypedChars(i);
-      if (i >= command.length) {
-        clearInterval(intervalRef.current!);
-        // Delay then show output
-        setTimeout(() => setShowOutput(true), outputDelay);
-      }
-    }, speed);
+      let i = 0;
+      intervalRef.current = setInterval(() => {
+        i++;
+        setTypedChars(i);
+        if (i >= command.length) {
+          clearInterval(intervalRef.current!);
+          timeoutRef.current = setTimeout(() => {
+            setShowOutput(true);
+            setAnimating(false);
+          }, outputDelay);
+        }
+      }, speed);
+    }, 50);
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      clearTimeout(start);
+      cleanup();
     };
-  }, [command, speed, outputDelay]);
+  }, [command, speed, outputDelay, cleanup]);
 
   const prompt = `${toDosPath(slugPath)}>`;
-
-  // Server render: show everything
-  if (!hydrated) {
-    return (
-      <div>
-        <div className="text-[var(--dos-prompt)]">
-          {prompt}{command}
-        </div>
-        {children}
-      </div>
-    );
-  }
 
   return (
     <div>
       <div className="text-[var(--dos-prompt)]">
         {prompt}
         <span>{command.slice(0, typedChars)}</span>
-        {typedChars < command.length && (
+        {animating && typedChars < command.length && (
           <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
         )}
       </div>
-      {/* Output stays in DOM for SEO but hidden until animation completes */}
       <div
-        style={{
-          visibility: showOutput ? "visible" : "hidden",
-          position: showOutput ? "static" : "absolute",
-          height: showOutput ? "auto" : 0,
-          overflow: showOutput ? "visible" : "hidden",
-        }}
+        style={
+          showOutput
+            ? undefined
+            : {
+                visibility: "hidden" as const,
+                position: "absolute" as const,
+                height: 0,
+                overflow: "hidden" as const,
+              }
+        }
       >
         {children}
       </div>
