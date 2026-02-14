@@ -29,7 +29,7 @@ const markdownComponents = {
   a: ({ href, children }: ComponentProps) => (
     <a
       href={href}
-      className="text-[var(--dos-link)] hover:bg-[rgba(85,255,85,0.2)] hover:text-[var(--dos-link)] transition-none"
+      className="cursor-pointer text-[var(--dos-link)] hover:bg-[rgba(85,255,85,0.2)] hover:text-[var(--dos-link)] transition-none"
       target={href?.startsWith("http") ? "_blank" : undefined}
       rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
     >
