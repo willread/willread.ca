@@ -11,12 +11,15 @@ interface Props {
   parentSlug?: string;
 }
 
+const linkClass = "block hover:bg-[#aaa] hover:text-black transition-none";
+const linkStyle = { color: "#ffffff" };
+
 export default function DirListing({ slugPath, entries, parentSlug }: Props) {
   const dosPath = toDosPath(slugPath);
-  const fileCount = entries.filter((e) => e.type === "file").length;
+  const fileCount = entries.filter((e) => e.type !== "dir").length;
   const dirCount = entries.filter((e) => e.type === "dir").length;
   const totalBytes = entries
-    .filter((e) => e.type === "file")
+    .filter((e) => e.type !== "dir")
     .reduce((sum, e) => sum + e.size, 0);
 
   return (
@@ -27,28 +30,41 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
 
       <DirRow name="." type="dir" />
       {parentSlug !== undefined && (
-        <Link
-          href={toHref(parentSlug)}
-          className="block hover:bg-[#aaa] hover:text-black transition-none"
-          style={{ color: "#ffffff" }}
-        >
+        <Link href={toHref(parentSlug)} className={linkClass} style={linkStyle}>
           <DirRow name=".." type="dir" />
         </Link>
       )}
 
       {entries.map((entry) => {
+        // External links open in new tab
+        if (entry.type === "link" && entry.url) {
+          return (
+            <a
+              key={entry.name}
+              href={entry.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={linkClass}
+              style={linkStyle}
+            >
+              <DirRow
+                name={entry.name}
+                type={entry.type}
+                size={entry.size}
+                date={entry.date}
+                time={entry.time}
+              />
+            </a>
+          );
+        }
+
         const entrySlugPart = entryToSlug(entry.name, entry.type);
         const href = toHref(
           slugPath ? `${slugPath}/${entrySlugPart}` : entrySlugPart
         );
 
         return (
-          <Link
-            key={entry.name}
-            href={href}
-            className="block hover:bg-[#aaa] hover:text-black transition-none"
-            style={{ color: "#ffffff" }}
-          >
+          <Link key={entry.name} href={href} className={linkClass} style={linkStyle}>
             <DirRow
               name={entry.name}
               type={entry.type}
@@ -81,7 +97,7 @@ function DirRow({
   time,
 }: {
   name: string;
-  type: "file" | "dir";
+  type: "file" | "dir" | "link";
   size?: number;
   date?: string;
   time?: string;

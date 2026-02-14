@@ -3,10 +3,11 @@ import path from "path";
 
 export interface FileEntry {
   name: string;
-  type: "file" | "dir";
+  type: "file" | "dir" | "link";
   size: number;
   date: string;
   time: string;
+  url?: string; // for .lnk files
 }
 
 export interface DirListing {
@@ -66,12 +67,23 @@ export function getDirListing(slugPath: string = ""): DirListing | null {
         date,
         time,
       });
+    } else if (item.endsWith(".lnk")) {
+      const url = fs.readFileSync(itemPath, "utf-8").trim();
+      entries.push({
+        name: item.replace(/\.lnk$/, ".LNK"),
+        type: "link",
+        size: url.length,
+        date,
+        time,
+        url,
+      });
     }
   }
 
-  // Directories first, then files, alphabetical within each group
+  // Directories first, then files/links, alphabetical within each group
   entries.sort((a, b) => {
-    if (a.type !== b.type) return a.type === "dir" ? -1 : 1;
+    if (a.type === "dir" && b.type !== "dir") return -1;
+    if (a.type !== "dir" && b.type === "dir") return 1;
     return a.name.localeCompare(b.name);
   });
 
@@ -87,6 +99,14 @@ export function getFileContent(slugPath: string): FileContent | null {
     name: path.basename(slugPath).toUpperCase() + ".TXT",
     body: fs.readFileSync(mdPath, "utf-8"),
   };
+}
+
+/** Check if a slug path is a valid route (directory or .md file). */
+export function isValidPath(slugPath: string): boolean {
+  if (!slugPath) return true; // root
+  const dirPath = path.join(CONTENT_DIR, slugPath);
+  const mdPath = path.join(CONTENT_DIR, slugPath + ".md");
+  return fs.existsSync(dirPath) || fs.existsSync(mdPath);
 }
 
 /** Walk all content paths for static generation. */
@@ -105,6 +125,7 @@ export function getAllPaths(): string[] {
       } else if (item.endsWith(".md")) {
         paths.push(rel.replace(/\.md$/, ""));
       }
+      // .lnk files don't get their own routes — they link externally
     }
   }
 

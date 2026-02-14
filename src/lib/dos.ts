@@ -22,9 +22,9 @@ export function parentSlug(slugPath: string): string | undefined {
 }
 
 /** Convert a DOS display name to a slug-safe name for URLs */
-export function entryToSlug(name: string, type: "file" | "dir"): string {
+export function entryToSlug(name: string, type: "file" | "dir" | "link"): string {
   if (type === "dir") return name.toLowerCase();
-  return name.replace(/\.TXT$/i, "").toLowerCase();
+  return name.replace(/\.(TXT|LNK)$/i, "").toLowerCase();
 }
 
 /** Format a DOS 8.3 style row: name, extension, size or <DIR>, date, time */

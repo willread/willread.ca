@@ -1,8 +1,7 @@
 import { Metadata } from "next";
-import Link from "next/link";
-import { getDirListing, getFileContent, getAllPaths } from "@/lib/content";
-import { toDosPath, toHref, parentSlug } from "@/lib/dos";
-import DosPrompt from "@/components/DosPrompt";
+import { notFound } from "next/navigation";
+import { getDirListing, getFileContent, getAllPaths, isValidPath } from "@/lib/content";
+import { toDosPath, parentSlug } from "@/lib/dos";
 import TypedCommand from "@/components/TypedCommand";
 import DirListing from "@/components/DirListing";
 import FileView from "@/components/FileView";
@@ -63,10 +62,7 @@ export default async function Page({ params }: Props) {
         <FileView slugPath="" fileName={file.name} content={file.body} />
         {rootDir && (
           <div className="mt-4">
-            <DirListing
-              slugPath=""
-              entries={rootDir.entries}
-            />
+            <DirListing slugPath="" entries={rootDir.entries} />
           </div>
         )}
       </TerminalBlock>
@@ -99,17 +95,6 @@ export default async function Page({ params }: Props) {
     );
   }
 
-  // 404
-  return (
-    <TerminalBlock id={`404:${slugPath}`}>
-      <DosPrompt slugPath="" command={slugPath.toUpperCase()} />
-      <div className="mt-2 mb-2">Bad command or file name</div>
-      <Link
-        href="/"
-        className="text-[var(--dos-prompt)] hover:text-[var(--dos-highlight)]"
-      >
-        C:\&gt;CD \
-      </Link>
-    </TerminalBlock>
-  );
+  // Not found
+  notFound();
 }
