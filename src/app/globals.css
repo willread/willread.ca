@@ -43,12 +43,8 @@ html, body {
 }
 
 a {
-  color: var(--dos-fg);
   text-decoration: none;
-}
-
-a:hover {
-  color: var(--dos-highlight);
+  color: inherit;
 }
 
 /* Blinking cursor */
