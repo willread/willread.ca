@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { FileEntry } from "@/lib/content";
 import { toDosPath, toHref } from "@/lib/dos";
 import { useCommandQueue } from "@/lib/command-queue";
+import { useTerminal } from "@/lib/terminal";
 import TypedCommand from "./TypedCommand";
 
 interface Props {
@@ -17,6 +19,9 @@ const linkStyle = { color: "var(--dos-link)" };
 
 export default function DirListing({ slugPath, entries, parentSlug }: Props) {
   const { isStatic } = useCommandQueue();
+  const { forceNav } = useTerminal();
+  const pathname = usePathname();
+  const router = useRouter();
   const dosPath = toDosPath(slugPath);
   const fileCount = entries.filter((e) => e.type !== "dir").length;
   const dirCount = entries.filter((e) => e.type === "dir").length;
@@ -73,9 +78,25 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
           );
         }
 
-        const href = toHref(
-          slugPath ? `${slugPath}/${entry.slug}` : entry.slug
-        );
+        const entryPath = slugPath ? `${slugPath}/${entry.slug}` : entry.slug;
+        const href = toHref(entryPath);
+        const isCurrent = pathname === href;
+
+        if (isCurrent) {
+          return (
+            <div
+              key={entry.name}
+              className={`${linkClass} cursor-pointer`}
+              style={linkStyle}
+              onClick={() => {
+                forceNav();
+                router.refresh();
+              }}
+            >
+              {row}
+            </div>
+          );
+        }
 
         return (
           <Link key={entry.name} href={href} className={linkClass} style={linkStyle}>

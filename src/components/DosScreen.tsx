@@ -1,26 +1,14 @@
 "use client";
 
-import { ReactNode, useRef, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { ReactNode, useRef, useEffect } from "react";
 import { useTerminal } from "@/lib/terminal";
 import { StaticCommandQueue } from "@/lib/command-queue";
 import DosCursor from "./DosCursor";
 
-let screenNavCounter = 0;
-
 export default function DosScreen({ children }: { children: ReactNode }) {
-  const { history } = useTerminal();
-  const pathname = usePathname();
+  const { history, navKey } = useTerminal();
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const prevPathRef = useRef(pathname);
-  const navKeyRef = useRef(screenNavCounter);
-
-  // Detect navigation synchronously
-  if (prevPathRef.current !== pathname) {
-    prevPathRef.current = pathname;
-    navKeyRef.current = ++screenNavCounter;
-  }
 
   // Auto-scroll whenever DOM content changes (typing, revealing, navigation)
   useEffect(() => {
@@ -54,7 +42,7 @@ export default function DosScreen({ children }: { children: ReactNode }) {
       ))}
 
       {/* Current page — key forces full remount on navigation */}
-      <div key={navKeyRef.current}>
+      <div key={navKey}>
         {children}
       </div>
 
