@@ -21,7 +21,7 @@ export default function TypedCommand({
   speed = 100,
   fadeDuration = 400,
 }: Props) {
-  const { register, complete, activeIndex } = useCommandQueue();
+  const { register, complete, activeIndex, isStatic } = useCommandQueue();
   const myIndex = useMemo(() => register(id), [id, register]);
 
   const isMyTurn = activeIndex >= myIndex;
@@ -60,6 +60,17 @@ export default function TypedCommand({
   }, [isMyTurn, started, command, speed, fadeDuration, myIndex, complete, cleanup]);
 
   const prompt = `${toDosPath(slugPath)}>`;
+
+  // Static mode: render everything instantly
+  if (isStatic) {
+    return (
+      <div>
+        <div className="text-[var(--dos-prompt)]">{prompt}{command}</div>
+        <div>{children}</div>
+      </div>
+    );
+  }
+
   const isTyping = started && typedChars < command.length;
 
   // Before our turn: hidden but in DOM for SEO

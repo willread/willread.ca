@@ -3,6 +3,7 @@
 import { ReactNode, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useTerminal } from "@/lib/terminal";
+import { StaticCommandQueue } from "@/lib/command-queue";
 import DosCursor from "./DosCursor";
 
 export default function DosScreen({ children }: { children: ReactNode }) {
@@ -22,7 +23,7 @@ export default function DosScreen({ children }: { children: ReactNode }) {
       {/* Previous output */}
       {history.map((node, i) => (
         <div key={i} className="mb-4 opacity-60">
-          {node}
+          <StaticCommandQueue>{node}</StaticCommandQueue>
         </div>
       ))}
 

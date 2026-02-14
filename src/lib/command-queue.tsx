@@ -10,18 +10,18 @@ import {
 } from "react";
 
 interface QueueContext {
-  /** Register a command, returns its index in the queue */
   register: (id: string) => number;
-  /** Signal that command at index is done (typing + fade complete) */
   complete: (index: number) => void;
-  /** Current active command index */
   activeIndex: number;
+  /** When true, all commands render instantly (no animation) */
+  isStatic: boolean;
 }
 
 const CommandQueueContext = createContext<QueueContext>({
   register: () => 0,
   complete: () => {},
   activeIndex: 0,
+  isStatic: false,
 });
 
 export function CommandQueue({ children }: { children: ReactNode }) {
@@ -43,7 +43,23 @@ export function CommandQueue({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <CommandQueueContext.Provider value={{ register, complete, activeIndex }}>
+    <CommandQueueContext.Provider value={{ register, complete, activeIndex, isStatic: false }}>
+      {children}
+    </CommandQueueContext.Provider>
+  );
+}
+
+/** Renders all commands instantly with no animation */
+export function StaticCommandQueue({ children }: { children: ReactNode }) {
+  return (
+    <CommandQueueContext.Provider
+      value={{
+        register: () => 0,
+        complete: () => {},
+        activeIndex: Infinity,
+        isStatic: true,
+      }}
+    >
       {children}
     </CommandQueueContext.Provider>
   );
