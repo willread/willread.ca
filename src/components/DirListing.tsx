@@ -85,10 +85,10 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
       })}
 
       <pre className="font-[inherit] text-[length:inherit] leading-[inherit] mt-1 flex">
-        <span>{`        ${String(fileCount).padStart(3)} File(s)  ${totalBytes.toLocaleString()} bytes`}</span>
+        <span>{`             ${String(fileCount).padStart(3)} File(s)  ${`${totalBytes.toLocaleString()} bytes`.padEnd(20)}`}</span>
       </pre>
       <pre className="font-[inherit] text-[length:inherit] leading-[inherit] flex">
-        <span>{`        ${String(dirCount + 2).padStart(3)} Dir(s)   420,694,200 bytes free`}</span>
+        <span>{`             ${String(dirCount + 2).padStart(3)} Dir(s)   ${"420,694,200 bytes free".padEnd(20)}`}</span>
       </pre>
     </TypedCommand>
   );
@@ -126,8 +126,8 @@ function DirRow({
   }
 
   const sizePart = type === "dir"
-    ? "<DIR>".padEnd(14)
-    : (size?.toLocaleString() ?? "0").padEnd(14);
+    ? "<DIR>".padEnd(20)
+    : `${size?.toLocaleString() ?? "0"} bytes`.padEnd(20);
 
   const preStyle = "font-[inherit] text-[length:inherit] leading-[inherit] flex";
 
