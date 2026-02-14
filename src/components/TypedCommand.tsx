@@ -23,11 +23,12 @@ export default function TypedCommand({
 }: Props) {
   const { register, complete, activeIndex, isStatic } = useCommandQueue();
   const myIndex = useMemo(() => register(id), [id, register]);
-
   const isMyTurn = activeIndex >= myIndex;
-  const [typedChars, setTypedChars] = useState(command.length);
-  const [showOutput, setShowOutput] = useState(true);
-  const [started, setStarted] = useState(false);
+
+  const [phase, setPhase] = useState<"idle" | "typing" | "fading" | "done">(
+    isStatic ? "done" : "idle"
+  );
+  const [typedChars, setTypedChars] = useState(isStatic ? command.length : 0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -36,11 +37,12 @@ export default function TypedCommand({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
+  // Start typing when it's our turn
   useEffect(() => {
-    if (!isMyTurn || started) return;
-    setStarted(true);
+    if (isStatic || !isMyTurn || phase !== "idle") return;
+
+    setPhase("typing");
     setTypedChars(0);
-    setShowOutput(false);
 
     let i = 0;
     intervalRef.current = setInterval(() => {
@@ -48,21 +50,21 @@ export default function TypedCommand({
       setTypedChars(i);
       if (i >= command.length) {
         clearInterval(intervalRef.current!);
-        // Show output immediately, signal complete after fade
-        setShowOutput(true);
+        setPhase("fading");
         timeoutRef.current = setTimeout(() => {
+          setPhase("done");
           complete(myIndex);
         }, fadeDuration);
       }
     }, speed);
 
     return cleanup;
-  }, [isMyTurn, started, command, speed, fadeDuration, myIndex, complete, cleanup]);
+  }, [isMyTurn, isStatic, phase, command.length, speed, fadeDuration, myIndex, complete, cleanup]);
 
   const prompt = `${toDosPath(slugPath)}>`;
 
-  // Static mode: render everything instantly
-  if (isStatic) {
+  // Static: render instantly
+  if (isStatic || phase === "done") {
     return (
       <div>
         <div className="text-[var(--dos-prompt)]">{prompt}{command}</div>
@@ -71,34 +73,29 @@ export default function TypedCommand({
     );
   }
 
-  const isTyping = started && typedChars < command.length;
-
-  // Before our turn: hidden but in DOM for SEO
-  if (!isMyTurn && !started) {
+  // Not our turn yet: hidden but in DOM for SEO
+  if (phase === "idle") {
     return (
-      <div>
-        <div className="text-[var(--dos-prompt)]">
-          {prompt}{command}
-        </div>
-        <div style={{ position: "absolute", opacity: 0, height: 0, overflow: "hidden" }}>
-          {children}
-        </div>
+      <div style={{ position: "absolute", opacity: 0, height: 0, overflow: "hidden" }}>
+        <div>{prompt}{command}</div>
+        <div>{children}</div>
       </div>
     );
   }
 
+  // Typing or fading
   return (
     <div>
       <div className="text-[var(--dos-prompt)]">
         {prompt}
         <span>{command.slice(0, typedChars)}</span>
-        {isTyping && (
+        {phase === "typing" && typedChars < command.length && (
           <span className="cursor-blink text-[var(--dos-highlight)]">▓</span>
         )}
       </div>
       <div
         style={{
-          opacity: showOutput ? 1 : 0,
+          opacity: phase === "fading" || phase === "done" ? 1 : 0,
           transition: `opacity ${fadeDuration}ms ease-in`,
         }}
       >
