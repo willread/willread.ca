@@ -14,6 +14,10 @@ interface Props {
   parentSlug?: string;
 }
 
+// Cache CD command info per slugPath so React strict mode re-renders don't lose it.
+// Cleared when a new navigation happens (different slugPath).
+const _cdCache = new Map<string, { command: string | null; promptSlug: string }>();
+
 const linkClass = "block cursor-pointer hover:bg-[rgba(85,255,85,0.2)] hover:text-black active:bg-[rgba(85,255,85,0.2)] active:text-[var(--dos-link)] transition-none";
 const linkStyle = { color: "var(--dos-link)" };
 
@@ -23,26 +27,34 @@ export default function DirListing({ slugPath, entries, parentSlug }: Props) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Compute CD command from previous dir.
-  const prevDir = setCurrentDir(slugPath);
-  let cdCommand: string | null = null;
-  let cdPromptSlug = "";
+  // Compute CD command from previous dir. Cache result so re-renders
+  // (including React strict mode) don't lose the CD command.
+  if (_cdCache.size > 0 && !_cdCache.has(slugPath)) {
+    _cdCache.clear(); // New navigation — clear old cache
+  }
+  if (!_cdCache.has(slugPath)) {
+    const prevDir = setCurrentDir(slugPath);
+    let command: string | null = null;
+    let promptSlug = "";
 
-  if (prevDir !== null) {
-    const fromDepth = prevDir ? prevDir.split("/").filter(Boolean).length : 0;
-    const toDepth = slugPath ? slugPath.split("/").filter(Boolean).length : 0;
+    if (prevDir !== null) {
+      const fromDepth = prevDir ? prevDir.split("/").filter(Boolean).length : 0;
+      const toDepth = slugPath ? slugPath.split("/").filter(Boolean).length : 0;
 
-    if (fromDepth > toDepth) {
-      cdCommand = "CD ..";
-      cdPromptSlug = prevDir;
-    } else if (toDepth > fromDepth) {
-      const dirName = slugPath.split("/").pop()?.toUpperCase();
-      if (dirName) {
-        cdCommand = `CD ${dirName}`;
-        cdPromptSlug = prevDir;
+      if (fromDepth > toDepth) {
+        command = "CD ..";
+        promptSlug = prevDir;
+      } else if (toDepth > fromDepth) {
+        const dirName = slugPath.split("/").pop()?.toUpperCase();
+        if (dirName) {
+          command = `CD ${dirName}`;
+          promptSlug = prevDir;
+        }
       }
     }
+    _cdCache.set(slugPath, { command, promptSlug });
   }
+  const { command: cdCommand, promptSlug: cdPromptSlug } = _cdCache.get(slugPath)!;
 
   const dosPath = toDosPath(slugPath);
   const fileCount = entries.filter((e) => e.type !== "dir").length;
