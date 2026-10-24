@@ -19,6 +19,7 @@ export interface DirListing {
 export interface FileContent {
   name: string;
   body: string;
+  format: "markdown" | "ansi";
 }
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
@@ -70,10 +71,10 @@ export function getDirListing(slugPath: string = ""): DirListing | null {
         date,
         time,
       });
-    } else if (item.endsWith(".md")) {
-      const base = item.replace(/\.md$/, "");
+    } else if (item.endsWith(".md") || item.endsWith(".ans")) {
+      const base = item.replace(/\.(md|ans)$/, "");
       entries.push({
-        name: toDos83(base, "TXT"),
+        name: toDos83(base, item.endsWith(".ans") ? "ANS" : "TXT"),
         slug: base.toLowerCase(),
         type: "file",
         size: stat.size,
@@ -105,24 +106,28 @@ export function getDirListing(slugPath: string = ""): DirListing | null {
   return { slug: slugPath, entries };
 }
 
-/** Read a content file by slug path. Returns null if not found. */
+/** Read Markdown or UTF-8 ANSI content by slug path. */
 export function getFileContent(slugPath: string): FileContent | null {
-  const mdPath = path.join(CONTENT_DIR, slugPath + ".md");
-  if (!fs.existsSync(mdPath)) return null;
+  const extension = ["md", "ans"].find((ext) =>
+    fs.existsSync(path.join(CONTENT_DIR, `${slugPath}.${ext}`))
+  );
+  if (!extension) return null;
 
   const base = path.basename(slugPath);
   return {
-    name: toDos83(base, "TXT"),
-    body: fs.readFileSync(mdPath, "utf-8"),
+    name: toDos83(base, extension === "ans" ? "ANS" : "TXT"),
+    body: fs.readFileSync(path.join(CONTENT_DIR, `${slugPath}.${extension}`), "utf-8"),
+    format: extension === "ans" ? "ansi" : "markdown",
   };
 }
 
-/** Check if a slug path is a valid route (directory or .md file). */
+/** Check if a slug path is a valid content route. */
 export function isValidPath(slugPath: string): boolean {
   if (!slugPath) return true; // root
   const dirPath = path.join(CONTENT_DIR, slugPath);
   const mdPath = path.join(CONTENT_DIR, slugPath + ".md");
-  return fs.existsSync(dirPath) || fs.existsSync(mdPath);
+  const ansiPath = path.join(CONTENT_DIR, slugPath + ".ans");
+  return fs.existsSync(dirPath) || fs.existsSync(mdPath) || fs.existsSync(ansiPath);
 }
 
 /** Walk all content paths for static generation. */
@@ -138,8 +143,8 @@ export function getAllPaths(): string[] {
       if (fs.statSync(full).isDirectory()) {
         paths.push(rel);
         walk(rel);
-      } else if (item.endsWith(".md")) {
-        paths.push(rel.replace(/\.md$/, ""));
+      } else if (item.endsWith(".md") || item.endsWith(".ans")) {
+        paths.push(rel.replace(/\.(md|ans)$/, ""));
       }
       // .lnk files don't get their own routes — they link externally
     }

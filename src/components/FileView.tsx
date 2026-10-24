@@ -3,11 +3,13 @@
 import Markdown from "react-markdown";
 import { ReactNode } from "react";
 import TypedCommand from "./TypedCommand";
+import AnsiArt from "./AnsiArt";
 
 interface Props {
   slugPath: string;
   fileName: string;
   content: string;
+  format?: "markdown" | "ansi";
 }
 
 interface ComponentProps {
@@ -56,11 +58,13 @@ const markdownComponents = {
   ),
 };
 
-export default function FileView({ slugPath, fileName, content }: Props) {
+export default function FileView({ slugPath, fileName, content, format = "markdown" }: Props) {
   return (
     <TypedCommand id={`type-${fileName}`} slugPath={slugPath} command={`TYPE ${fileName}`}>
       <div className="mt-2 break-words">
-        <Markdown components={markdownComponents}>{content}</Markdown>
+        {format === "ansi" ? <AnsiArt content={content} /> : (
+          <Markdown components={markdownComponents}>{content}</Markdown>
+        )}
       </div>
     </TypedCommand>
   );

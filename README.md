@@ -34,3 +34,18 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## ANSI project pages
+
+UTF-8 `.ans` files under `content/` receive the same routes, directory entries,
+TYPE animation and navigation as Markdown pages. The renderer supports true-color
+SGR foreground/background sequences and resets, renders content as React text,
+and links HTTP(S) URLs. It does not enable raw HTML in Markdown.
+
+The Caern default is `/projects/caern`; `/projects/caern-test` is a separate
+experimental art comparison. Both are local previews until explicitly published.
+
+The existing IBM_VGA_8x16 font has 1600-unit advances on a 1600-unit em, so it
+actually renders square cells. The ANSI component compresses it horizontally to
+8px by 16px cells and sizes a matching layout box. Each half-block art sample
+therefore occupies a square 8px by 8px area. Surrounding DOS UI retains VT323.

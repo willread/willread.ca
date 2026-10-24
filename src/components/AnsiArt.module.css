@@ -1,0 +1,53 @@
+@font-face {
+  font-family: "IBM VGA ANSI";
+  src: url("/fonts/IBM_VGA_8x16.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #080c10;
+  scrollbar-width: thin;
+  scrollbar-color: #e9a361 #080c10;
+}
+
+.scroll::-webkit-scrollbar { height: 8px; }
+.scroll::-webkit-scrollbar-thumb { background: #e9a361; }
+.scroll::-webkit-scrollbar-track { background: #080c10; }
+.scroll:focus-visible { outline: 1px solid #e9a361; outline-offset: 3px; }
+
+.geometry {
+  position: relative;
+  overflow: hidden;
+}
+
+.art {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  font-family: "IBM VGA ANSI", "Courier New", monospace;
+  font-size: 16px;
+  font-weight: 400;
+  font-style: normal;
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+  /* The bundled font has square advances despite its 8x16 filename.
+     Restore DOS's 8px-wide / 16px-high cell without stretching the art. */
+  transform: scaleX(.5);
+  transform-origin: top left;
+}
+
+.art a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.art a:hover, .art a:focus-visible { color: #fff; outline: 1px solid currentColor; outline-offset: 2px; }
+.art ::selection { color: #080c10; background: #ffd39a; }

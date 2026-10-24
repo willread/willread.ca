@@ -30,8 +30,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const file = getFileContent(slugPath);
   if (file) {
-    const title = `will://${slugPath}.txt`;
-    return { title, description: file.body.slice(0, 160).replace(/[#*_\n]/g, "") };
+    const title = `will://${slugPath}.${file.format === "ansi" ? "ans" : "txt"}`;
+    const description = file.format === "ansi"
+      ? `ANSI project page: ${file.name}`
+      : file.body.slice(0, 160).replace(/[#*_\n]/g, "");
+    return { title, description };
   }
 
   const dir = getDirListing(slugPath);
@@ -54,7 +57,7 @@ export default async function Page({ params }: Props) {
     const grandparent = parentSlug(fileParent);
     return (
       <TerminalBlock id={`file:${slugPath}`}>
-        <FileView slugPath={fileParent} fileName={file.name} content={file.body} />
+        <FileView slugPath={fileParent} fileName={file.name} content={file.body} format={file.format} />
         {parentDir && (
           <ClickableDir slugPath={fileParent} entries={parentDir.entries} parentSlug={grandparent} />
         )}
