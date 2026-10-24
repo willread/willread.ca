@@ -42,10 +42,16 @@ TYPE animation and navigation as Markdown pages. The renderer supports true-colo
 SGR foreground/background sequences and resets, renders content as React text,
 and links HTTP(S) URLs. It does not enable raw HTML in Markdown.
 
-The Caern default is `/projects/caern`; `/projects/caern-test` is a separate
-experimental art comparison. Both are local previews until explicitly published.
+The Caern page is `/projects/caern`. The separate experimental artwork is kept
+in `previews/caern-test.ans`, outside the published content directory.
 
 The existing IBM_VGA_8x16 font has 1600-unit advances on a 1600-unit em, so it
 actually renders square cells. The ANSI component compresses it horizontally to
 8px by 16px cells and sizes a matching layout box. Each half-block art sample
 therefore occupies a square 8px by 8px area. Surrounding DOS UI retains VT323.
+
+Framed project pages use their original 80-column screen at full width. Below
+640px of available space, the header and art scale proportionally while the
+headline, two paragraphs and Steam URL reflow at 20px in the site's VT323 font.
+Mobile copy is extracted from the ANSI frame rather than maintained separately.
+This layout was checked in actual 320px and 390px viewports.

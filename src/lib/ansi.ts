@@ -35,3 +35,34 @@ export function parseAnsi(content: string): AnsiRun[] {
   if (offset < content.length) runs.push({ text: content.slice(offset), color, background });
   return runs;
 }
+
+/** Reuse a framed screen's own copy for a reflowing mobile layout. */
+export function splitFramedAnsiPage(content: string) {
+  const rawLines = content.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
+  const lines = parseAnsi(content).map((run) => run.text).join("")
+    .replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
+  const dividers = lines.flatMap((line, index) => /^╠═+╣$/.test(line) ? [index] : []);
+  if (dividers.length !== 3 || !/^╔═+╗$/.test(lines[0]) || !/^╚═+╝$/.test(lines.at(-1) || "")) return null;
+
+  const unframe = (line: string) => Array.from(line).slice(2, -2).join("").trim();
+  const paragraphs: string[] = [];
+  let paragraph = "";
+  for (const line of lines.slice(dividers[1] + 1, dividers[2])) {
+    const text = unframe(line);
+    if (text) paragraph += (paragraph ? " " : "") + text;
+    else if (paragraph) { paragraphs.push(paragraph); paragraph = ""; }
+  }
+  if (paragraph) paragraphs.push(paragraph);
+  const footer = lines.slice(dividers[2] + 1, -1).map(unframe).filter(Boolean);
+  const url = footer.find((line) => /^https?:\/\/\S+$/.test(line));
+  if (!paragraphs.length || !url) return null;
+
+  return {
+    art: rawLines.slice(0, dividers[1] + 1).join("\n"),
+    artRows: dividers[1] + 1,
+    heading: paragraphs[0],
+    paragraphs: paragraphs.slice(1),
+    callout: footer.find((line) => line !== url)?.replace(/^[▓▒░\s]+|[▓▒░\s]+$/g, ""),
+    url,
+  };
+}

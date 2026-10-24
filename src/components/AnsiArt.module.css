@@ -25,6 +25,28 @@
   overflow: hidden;
 }
 
+.mobileArt { position: relative; overflow: hidden; }
+.mobileNative { position: absolute; top: 0; left: 0; transform-origin: top left; }
+
+.copy, .callout {
+  border: 3px double #e9a361;
+  border-top: 0;
+  padding: 16px 18px;
+  font-family: var(--font-dos), "Courier New", monospace;
+  font-size: 20px;
+  line-height: 1.18;
+  color: #a7c1c5;
+  overflow-wrap: break-word;
+}
+
+.copy h2 { font: inherit; color: #ffd39a; margin: 0 0 18px; }
+.copy p { margin: 0 0 18px; }
+.copy p:last-child { margin-bottom: 0; }
+.callout { text-align: center; color: #fff4c2; }
+.callout p { margin: 0 0 8px; }
+.callout a { color: var(--dos-link); overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 2px; }
+.callout a:hover, .callout a:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
+
 .art {
   position: absolute;
   top: 0;
