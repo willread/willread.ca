@@ -4,8 +4,6 @@ import { Fragment, useMemo } from "react";
 import { parseAnsi } from "@/lib/ansi";
 import styles from "./AnsiArt.module.css";
 
-const steamUrl = "https://store.steampowered.com/app/5443690/";
-
 export default function AnsiArt({ content }: { content: string }) {
   const runs = useMemo(() => parseAnsi(content), [content]);
   const geometry = useMemo(() => {
@@ -19,9 +17,8 @@ export default function AnsiArt({ content }: { content: string }) {
       <pre className={styles.art}>
         {runs.map((run, index) => (
           <span key={index} style={{ color: run.color, backgroundColor: run.background }}>
-            {run.text.split(/(https:\/\/[^\s]+|VISIT CAERN ON STEAM)/g).map((part, partIndex) => {
-              // Link only HTTP(S) URLs and the artwork's existing Steam label.
-              const href = part === "VISIT CAERN ON STEAM" ? steamUrl : /^https?:\/\//.test(part) ? part : undefined;
+            {run.text.split(/(https?:\/\/[^\s]+)/g).map((part, partIndex) => {
+              const href = /^https?:\/\//.test(part) ? part : undefined;
               return href ? (
                 <a key={partIndex} href={href} target="_blank" rel="noopener noreferrer">{part}</a>
               ) : <Fragment key={partIndex}>{part}</Fragment>;

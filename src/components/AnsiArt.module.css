@@ -48,6 +48,6 @@
   transform-origin: top left;
 }
 
-.art a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.art a:hover, .art a:focus-visible { color: #fff; outline: 1px solid currentColor; outline-offset: 2px; }
+.art a { color: var(--dos-link); text-decoration: underline; text-underline-offset: 2px; }
+.art a:hover, .art a:focus-visible { color: var(--dos-link); outline: 1px solid currentColor; outline-offset: 2px; }
 .art ::selection { color: #080c10; background: #ffd39a; }
