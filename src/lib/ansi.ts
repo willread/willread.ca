@@ -60,6 +60,10 @@ export function splitFramedAnsiPage(content: string) {
   return {
     art: rawLines.slice(0, dividers[1] + 1).join("\n"),
     artRows: dividers[1] + 1,
+    header: rawLines.slice(1, dividers[0]).join("\n"),
+    headerRows: dividers[0] - 1,
+    picture: rawLines.slice(dividers[0] + 1, dividers[1]).join("\n"),
+    pictureRows: dividers[1] - dividers[0] - 1,
     heading: paragraphs[0],
     paragraphs: paragraphs.slice(1),
     callout: footer.find((line) => line !== url)?.replace(/^[▓▒░\s]+|[▓▒░\s]+$/g, ""),

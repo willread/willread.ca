@@ -55,3 +55,7 @@ Framed project pages use their original 80-column screen at full width. Below
 headline, two paragraphs and Steam URL reflow at 20px in the site's VT323 font.
 Mobile copy is extracted from the ANSI frame rather than maintained separately.
 This layout was checked in actual 320px and 390px viewports.
+
+Mobile framing uses a single fixed 3px CSS double border. The scaled header and
+illustration crop their ANSI frame cells, so art, copy and wishlist edges stay
+aligned even at fractional phone scale factors. Desktop retains the ANSI frame.
